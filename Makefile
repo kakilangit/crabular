@@ -33,6 +33,9 @@ test-doc: ## Run documentation tests
 examples: ## Run examples
 	cargo +$(RUST_VERSION) run --example table
 
+.PHONY: ci
+ci: fmt-check clippy test test-doc examples ## Run all CI checks
+
 .PHONY: clean
 clean: ## Clean build artifacts
 	cargo +$(RUST_VERSION) clean

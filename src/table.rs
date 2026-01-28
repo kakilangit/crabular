@@ -656,7 +656,8 @@ impl Table {
             let wrap_width = self.get_wrap_width(col_idx);
 
             let effective_width = wrap_width.unwrap_or(combined_width);
-            let lines = if cell.content().chars().count() > effective_width && wrap_width.is_some() {
+            let lines = if cell.content().chars().count() > effective_width && wrap_width.is_some()
+            {
                 Self::wrap_text(cell.content(), effective_width)
             } else {
                 vec![cell.content().to_string()]
