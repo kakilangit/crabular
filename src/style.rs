@@ -52,18 +52,31 @@ impl TableStyle {
                 bottom_cross: "┴",
                 cross: "┼",
             },
-            TableStyle::Minimal | TableStyle::Compact => BorderChars {
+            TableStyle::Minimal => BorderChars {
                 vertical: " ",
-                horizontal: " ",
+                horizontal: "─",
                 top_left: " ",
                 top_right: " ",
                 bottom_left: " ",
                 bottom_right: " ",
                 top_cross: " ",
-                left_cross: " ",
-                right_cross: " ",
+                left_cross: "─",
+                right_cross: "─",
                 bottom_cross: " ",
-                cross: " ",
+                cross: "─",
+            },
+            TableStyle::Compact => BorderChars {
+                vertical: "│",
+                horizontal: "─",
+                top_left: " ",
+                top_right: " ",
+                bottom_left: " ",
+                bottom_right: " ",
+                top_cross: " ",
+                left_cross: "─",
+                right_cross: "─",
+                bottom_cross: " ",
+                cross: "┼",
             },
             TableStyle::Markdown => BorderChars {
                 vertical: "|",
@@ -130,12 +143,23 @@ mod tests {
     }
 
     #[test]
-    fn border_chars_minimal_and_compact_are_same() {
-        let minimal = TableStyle::Minimal.border_chars();
-        let compact = TableStyle::Compact.border_chars();
-        assert_eq!(minimal.vertical, compact.vertical);
-        assert_eq!(minimal.horizontal, compact.horizontal);
-        assert_eq!(minimal.vertical, " ");
+    fn border_chars_minimal() {
+        let chars = TableStyle::Minimal.border_chars();
+        assert_eq!(chars.vertical, " ");
+        assert_eq!(chars.horizontal, "─");
+        assert_eq!(chars.cross, "─");
+        assert_eq!(chars.left_cross, "─");
+        assert_eq!(chars.right_cross, "─");
+    }
+
+    #[test]
+    fn border_chars_compact() {
+        let chars = TableStyle::Compact.border_chars();
+        assert_eq!(chars.vertical, "│");
+        assert_eq!(chars.horizontal, "─");
+        assert_eq!(chars.cross, "┼");
+        assert_eq!(chars.left_cross, "─");
+        assert_eq!(chars.right_cross, "─");
     }
 
     #[test]

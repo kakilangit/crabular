@@ -112,20 +112,20 @@ let _ = TableStyle::Markdown;  // GitHub-flavored markdown tables
 
 ### Minimal
 ```text
- Name             Age   City
-───────────────────────────────────────
- Kelana           30    Berlin
- Kata             25    Yogyakarta
- Cherry Blossom   35    Bikini Bottom
+  Name              Age    City           
+──────────────────────────────────────────
+  Kelana            30     Berlin         
+  Kata              25     Yogyakarta     
+  Cherry Blossom    35     Bikini Bottom  
 ```
 
 ### Compact
 ```text
- Name            │ Age │ City
-─────────────────┼─────┼───────────────
- Kelana          │ 30  │ Berlin
- Kata            │ 25  │ Yogyakarta
- Cherry Blossom  │ 35  │ Bikini Bottom
+│ Name            │ Age  │ City          │
+──────────────────┼──────┼────────────────
+│ Kelana          │ 30   │ Berlin        │
+│ Kata            │ 25   │ Yogyakarta    │
+│ Cherry Blossom  │ 35   │ Bikini Bottom │
 ```
 
 ### Markdown

@@ -33,7 +33,7 @@ impl Cell {
     }
 
     pub fn set_span(&mut self, span: usize) {
-        self.span = span;
+        self.span = span.max(1);
     }
 
     pub fn set_alignment(&mut self, alignment: Alignment) {

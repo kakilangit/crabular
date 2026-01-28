@@ -168,7 +168,7 @@ impl Table {
     where
         F: FnMut(&Row) -> bool,
     {
-        let mut new_table = Self {
+        Self {
             rows: self.rows.iter().filter(|r| predicate(r)).cloned().collect(),
             headers: self.headers.clone(),
             style: self.style,
@@ -177,9 +177,7 @@ impl Table {
             column_spacing: self.column_spacing,
             column_alignments: self.column_alignments.clone(),
             vertical_alignment: self.vertical_alignment,
-        };
-        new_table.rows = self.rows.iter().filter(|r| predicate(r)).cloned().collect();
-        new_table
+        }
     }
 
     /// Adds a new column to the table with the given values.
@@ -375,11 +373,12 @@ impl Table {
     }
 
     fn format_cell(content: &str, width: usize, alignment: Alignment) -> String {
-        let content_len = content.len();
+        let content_len = content.chars().count();
 
         if content_len > width {
             return if width > 3 {
-                format!("{}...", &content[..width - 3])
+                let truncated: String = content.chars().take(width - 3).collect();
+                format!("{truncated}...")
             } else {
                 ".".repeat(width)
             };
@@ -568,14 +567,14 @@ impl Table {
         let mut output = String::new();
         let column_widths = self.calculate_column_widths();
         let borders = self.style.border_chars();
-        let is_minimal = matches!(self.style, TableStyle::Minimal | TableStyle::Compact);
+        let is_minimal_or_compact = matches!(self.style, TableStyle::Minimal | TableStyle::Compact);
 
         let num_columns = column_widths.len();
         let _total_width = column_widths.iter().sum::<usize>()
             + (self.padding.left + self.padding.right) * num_columns
             + self.column_spacing * (num_columns.saturating_sub(1));
 
-        if !is_minimal {
+        if !is_minimal_or_compact {
             output.push_str(&Self::render_horizontal_border(
                 &column_widths,
                 self.padding,
@@ -594,17 +593,16 @@ impl Table {
                 &borders,
                 &self.column_alignments,
             ));
-            if !is_minimal {
-                output.push_str(&Self::render_horizontal_border(
-                    &column_widths,
-                    self.padding,
-                    self.column_spacing,
-                    borders.left_cross,
-                    borders.cross,
-                    borders.right_cross,
-                    borders.horizontal,
-                ));
-            }
+            // Render header separator for all styles
+            output.push_str(&Self::render_horizontal_border(
+                &column_widths,
+                self.padding,
+                self.column_spacing,
+                borders.left_cross,
+                borders.cross,
+                borders.right_cross,
+                borders.horizontal,
+            ));
         }
 
         for row in self.rows() {
@@ -616,7 +614,7 @@ impl Table {
             ));
         }
 
-        if !is_minimal {
+        if !is_minimal_or_compact {
             output.push_str(&Self::render_horizontal_border(
                 &column_widths,
                 self.padding,
