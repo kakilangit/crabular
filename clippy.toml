@@ -1,0 +1,5 @@
+# Clippy configuration for crabular
+
+allow-unwrap-in-tests = true
+allow-panic-in-tests = true
+allow-expect-in-tests = true
