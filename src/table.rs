@@ -198,6 +198,9 @@ impl Table {
             let content = value_iter.next().copied().unwrap_or("");
             row.push(Cell::new(content, alignment));
         }
+
+        // Extend column alignments to include the new column
+        self.column_alignments.push(alignment);
     }
 
     /// Inserts a new column at the specified index.
@@ -297,9 +300,10 @@ impl Table {
     }
 
     pub fn set_constraint(&mut self, column: usize, constraint: WidthConstraint) {
-        if column < self.constraints.len() {
-            self.constraints[column] = constraint;
+        if column >= self.constraints.len() {
+            self.constraints.resize(column + 1, WidthConstraint::Auto);
         }
+        self.constraints[column] = constraint;
     }
 
     #[must_use]
@@ -545,7 +549,6 @@ impl Table {
             return;
         }
 
-        let _total_content_width: usize = widths.iter().sum();
         let padding = self.padding.left + self.padding.right;
         let spacing = self
             .column_spacing

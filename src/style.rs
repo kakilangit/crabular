@@ -7,7 +7,7 @@ pub enum TableStyle {
     Markdown,
 }
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct BorderChars {
     pub vertical: &'static str,
     pub horizontal: &'static str,
