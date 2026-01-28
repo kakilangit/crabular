@@ -409,7 +409,7 @@ impl Table {
             return vec![String::new()];
         }
 
-        if text.len() <= width {
+        if text.chars().count() <= width {
             return vec![text.to_string()];
         }
 
@@ -418,30 +418,36 @@ impl Table {
         let mut current_line = String::new();
 
         for word in words {
+            let word_char_count = word.chars().count();
             if current_line.is_empty() {
-                if word.len() > width {
-                    lines.push(word[..width].to_string());
-                    let remaining = &word[width..];
+                if word_char_count > width {
+                    let chars: Vec<char> = word.chars().collect();
+                    let truncated: String = chars.iter().take(width).collect();
+                    lines.push(truncated);
+                    let remaining: String = chars.iter().skip(width).collect();
                     if !remaining.is_empty() {
-                        let remaining_lines = Self::wrap_text(remaining, width);
+                        let remaining_lines = Self::wrap_text(&remaining, width);
                         lines.extend(remaining_lines);
                     }
                 } else {
                     current_line.push_str(word);
                 }
             } else {
-                let potential_len = current_line.len() + 1 + word.len();
+                let current_char_count = current_line.chars().count();
+                let potential_len = current_char_count + 1 + word_char_count;
                 if potential_len <= width {
                     current_line.push(' ');
                     current_line.push_str(word);
                 } else {
                     lines.push(current_line.clone());
                     current_line.clear();
-                    if word.len() > width {
-                        lines.push(word[..width].to_string());
-                        let remaining = &word[width..];
+                    if word_char_count > width {
+                        let chars: Vec<char> = word.chars().collect();
+                        let truncated: String = chars.iter().take(width).collect();
+                        lines.push(truncated);
+                        let remaining: String = chars.iter().skip(width).collect();
                         if !remaining.is_empty() {
-                            let remaining_lines = Self::wrap_text(remaining, width);
+                            let remaining_lines = Self::wrap_text(&remaining, width);
                             lines.extend(remaining_lines);
                         }
                     } else {
@@ -467,7 +473,7 @@ impl Table {
 
         if let Some(headers) = self.headers() {
             for (idx, cell) in headers.cells().iter().enumerate() {
-                let width = cell.content().len();
+                let width = cell.content().chars().count();
                 if max_widths.len() < idx + 1 {
                     max_widths.resize(idx + 1, 0);
                 }
@@ -479,7 +485,7 @@ impl Table {
 
         for row in &self.rows {
             for (idx, cell) in row.cells().iter().enumerate() {
-                let width = cell.content().len();
+                let width = cell.content().chars().count();
                 if max_widths.len() < idx + 1 {
                     max_widths.resize(idx + 1, 0);
                 }
@@ -650,7 +656,7 @@ impl Table {
             let wrap_width = self.get_wrap_width(col_idx);
 
             let effective_width = wrap_width.unwrap_or(combined_width);
-            let lines = if cell.content().len() > effective_width && wrap_width.is_some() {
+            let lines = if cell.content().chars().count() > effective_width && wrap_width.is_some() {
                 Self::wrap_text(cell.content(), effective_width)
             } else {
                 vec![cell.content().to_string()]
@@ -1088,6 +1094,34 @@ mod tests {
     fn wrap_text_long_word() {
         let lines = Table::wrap_text("supercalifragilisticexpialidocious", 10);
         assert!(lines.len() > 1);
+    }
+
+    #[test]
+    fn wrap_text_unicode() {
+        // Test with multi-byte UTF-8 characters (Japanese)
+        let lines = Table::wrap_text("こんにちは世界", 5);
+        assert_eq!(lines.len(), 2);
+        assert_eq!(lines[0], "こんにちは");
+        assert_eq!(lines[1], "世界");
+    }
+
+    #[test]
+    fn wrap_text_unicode_long_word() {
+        // Test wrapping a long word with multi-byte characters
+        let lines = Table::wrap_text("日本語テスト文字列", 4);
+        assert_eq!(lines.len(), 3);
+        assert_eq!(lines[0], "日本語テ");
+        assert_eq!(lines[1], "スト文字");
+        assert_eq!(lines[2], "列");
+    }
+
+    #[test]
+    fn wrap_text_emoji() {
+        // Test with emoji (4-byte UTF-8 characters)
+        let lines = Table::wrap_text("🎉🎊🎁🎄🎅", 3);
+        assert_eq!(lines.len(), 2);
+        assert_eq!(lines[0], "🎉🎊🎁");
+        assert_eq!(lines[1], "🎄🎅");
     }
 
     // Vertical alignment tests
