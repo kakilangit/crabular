@@ -1,9 +1,11 @@
-# crabular
-
 [![CI](https://github.com/kakilangit/crabular/actions/workflows/ci.yml/badge.svg)](https://github.com/kakilangit/crabular/actions/workflows/ci.yml)
 [![Crates.io](https://img.shields.io/crates/v/crabular.svg)](https://crates.io/crates/crabular)
 [![Documentation](https://docs.rs/crabular/badge.svg)](https://docs.rs/crabular)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
+![Dall-E generated crabular image](https://raw.githubusercontent.com/kakilangit/static/refs/heads/main/crabular/crabular.jpeg)
+
+# Crabular
 
 A high-performance ASCII table library for Rust with zero dependencies.
 
