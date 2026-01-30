@@ -14,13 +14,10 @@ fn demo_styles() {
     println!("=== Modern Style ===");
     let mut table = Table::new();
     table.set_style(TableStyle::Modern);
-    table.set_headers(Row::from(&["Name", "Age", "City"], Alignment::Left));
-    table.add_row(Row::from(&["Kelana", "30", "Berlin"], Alignment::Left));
-    table.add_row(Row::from(&["Kata", "25", "Yogyakarta"], Alignment::Left));
-    table.add_row(Row::from(
-        &["Cherry Blossom", "35", "Bikini Bottom"],
-        Alignment::Left,
-    ));
+    table.set_headers(["Name", "Age", "City"]);
+    table.add_row(["Kelana", "30", "Berlin"]);
+    table.add_row(["Kata", "25", "Yogyakarta"]);
+    table.add_row(["Cherry Blossom", "35", "Bikini Bottom"]);
     table.print();
 
     // Classic style
@@ -49,14 +46,14 @@ fn demo_builder() {
     println!("\n=== TableBuilder with Constraints ===");
     TableBuilder::new()
         .style(TableStyle::Modern)
-        .header(&["ID", "Name", "Score"])
+        .header(["ID", "Name", "Score"])
         .constrain(0, WidthConstraint::Fixed(5))
         .constrain(1, WidthConstraint::Min(15))
         .align(2, Alignment::Right)
         .rows([
-            vec!["1", "Kelana", "95.5"],
-            vec!["2", "Kata", "87.2"],
-            vec!["3", "Cherry Blossom", "92.0"],
+            ["1", "Kelana", "95.5"],
+            ["2", "Kata", "87.2"],
+            ["3", "Cherry Blossom", "92.0"],
         ])
         .print();
 }
@@ -111,16 +108,13 @@ fn demo_colspan() {
     table.add_row(row4);
 
     // Row: all 5 individual columns
-    table.add_row(Row::from(
-        &[
-            "just 1 column",
-            "just 1 column",
-            "just 1 column",
-            "just 1 column",
-            "just 1 column",
-        ],
-        Alignment::Left,
-    ));
+    table.add_row([
+        "just 1 column",
+        "just 1 column",
+        "just 1 column",
+        "just 1 column",
+        "just 1 column",
+    ]);
 
     table.print();
 }
@@ -139,15 +133,15 @@ fn demo_invoice() {
     invoice.set_headers(inv_header);
 
     // Column headers
-    invoice.add_row(Row::from(
-        &["Item", "Qty", "Price", "Total"],
+    invoice.add_row(Row::with_alignment(
+        ["Item", "Qty", "Price", "Total"],
         Alignment::Center,
     ));
 
     // Line items
-    invoice.add_row(Row::from(&["Widget A", "5", "$10", "$50"], Alignment::Left));
-    invoice.add_row(Row::from(&["Widget B", "3", "$15", "$45"], Alignment::Left));
-    invoice.add_row(Row::from(&["Service", "1", "$25", "$25"], Alignment::Left));
+    invoice.add_row(["Widget A", "5", "$10", "$50"]);
+    invoice.add_row(["Widget B", "3", "$15", "$45"]);
+    invoice.add_row(["Service", "1", "$25", "$25"]);
 
     // Subtotal row
     let mut subtotal = Row::new();

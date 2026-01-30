@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.3.0] - 2026-01-30
+
+### Added
+- `Row::with_alignment(contents, alignment)` constructor for creating rows with specific alignment
+- `From` trait implementations for `Row`: arrays, slices, `Vec<S>` where `S: AsRef<str>`
+
+### Changed
+- `Table::add_row()`, `set_headers()`, `row()`, `header()`, `insert_row()` now accept `Into<Row>`
+- `TableBuilder::row()`, `header()`, `rows()` now accept `Into<Row>`
+- Simpler API: `table.add_row(["a", "b"])` instead of `table.add_row(Row::from(&["a", "b"], Alignment::Left))`
+- Use `core::` instead of `std::` for types available in both (future `no_std` compatibility)
+
+### Removed
+- **BREAKING:** `Row::from(contents, alignment)` constructor - use `Row::with_alignment(contents, alignment)` instead
+
 ## [0.2.0] - 2026-01-30
 
 ### Added

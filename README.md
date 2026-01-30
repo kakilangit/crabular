@@ -34,8 +34,8 @@ Crabular v0.2.0+ includes Rust 1.93 optimizations for significant performance im
 use crabular::Table;
 
 let table = Table::new()
-    .header(&["Name", "Age"])
-    .row(&["Alice", "30"]);
+    .header(["Name", "Age"])
+    .row(["Alice", "30"]);
 
 // Zero-allocation printing (20-40% faster)
 println!("{table}");
@@ -65,19 +65,19 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-crabular = "0.2"
+crabular = "0.3"
 ```
 
 ## Quick Start
 
 ```rust
-use crabular::{Table, Row, Alignment, TableStyle};
+use crabular::{Table, TableStyle};
 
 let mut table = Table::new();
 table.set_style(TableStyle::Modern);
-table.set_headers(Row::from(&["Name", "Age", "City"], Alignment::Left));
-table.add_row(Row::from(&["Kelana", "30", "Berlin"], Alignment::Left));
-table.add_row(Row::from(&["Kata", "25", "Yogyakarta"], Alignment::Left));
+table.set_headers(["Name", "Age", "City"]);
+table.add_row(["Kelana", "30", "Berlin"]);
+table.add_row(["Kata", "25", "Yogyakarta"]);
 
 println!("{}", table.render());
 ```
@@ -99,18 +99,20 @@ For a more fluent experience, use `TableBuilder`:
 ```rust
 use crabular::{TableBuilder, TableStyle, Alignment, WidthConstraint};
 
-TableBuilder::new()
+let output = TableBuilder::new()
     .style(TableStyle::Modern)
-    .header(&["ID", "Name", "Score"])
+    .header(["ID", "Name", "Score"])
     .constrain(0, WidthConstraint::Fixed(5))
     .constrain(1, WidthConstraint::Min(15))
     .align(2, Alignment::Right)
     .rows([
-        vec!["1", "Kelana", "95.5"],
-        vec!["2", "Kata", "87.2"],
-        vec!["3", "Cherry Blossom", "92.0"],
+        ["1", "Kelana", "95.5"],
+        ["2", "Kata", "87.2"],
+        ["3", "Cherry Blossom", "92.0"],
     ])
-    .print();
+    .render();
+
+print!("{output}");  // Or use .print() directly with std feature
 ```
 
 ## Table Styles
@@ -212,8 +214,8 @@ table.align(0, Alignment::Left);
 table.align(1, Alignment::Center);
 table.align(2, Alignment::Right);
 
-// Per-cell alignment via Row::from
-let row = Row::from(&["text"], Alignment::Center);
+// Per-row alignment via Row::with_alignment
+let row = Row::with_alignment(["text"], Alignment::Center);
 table.add_row(row);
 ```
 
@@ -239,7 +241,7 @@ Create cells that span multiple columns:
 use crabular::{Table, Cell, Row, Alignment};
 
 let mut table = Table::new();
-table.set_headers(Row::from(&["A", "B", "C"], Alignment::Left));
+table.set_headers(["A", "B", "C"]);
 
 let mut row = Row::new();
 let mut merged = Cell::new("Spans two columns", Alignment::Center);
@@ -260,8 +262,8 @@ Sort table rows by any column:
 use crabular::{Table, Row, Alignment};
 
 let mut table = Table::new();
-table.add_row(Row::from(&["Kelana", "30"], Alignment::Left));
-table.add_row(Row::from(&["Kata", "25"], Alignment::Left));
+table.add_row(["Kelana", "30"]);
+table.add_row(["Kata", "25"]);
 
 // Alphabetic sorting
 table.sort(0);           // Ascending by column 0
@@ -287,9 +289,9 @@ Filter rows based on conditions:
 use crabular::{Table, Row, Alignment};
 
 let mut table = Table::new();
-table.add_row(Row::from(&["Kelana", "Active", "100"], Alignment::Left));
-table.add_row(Row::from(&["Kata", "Inactive", "50"], Alignment::Left));
-table.add_row(Row::from(&["Cherry Blossom", "Active", "75"], Alignment::Left));
+table.add_row(["Kelana", "Active", "100"]);
+table.add_row(["Kata", "Inactive", "50"]);
+table.add_row(["Cherry Blossom", "Active", "75"]);
 
 // Exact match - keeps rows where column 1 equals "Active"
 table.filter_eq(1, "Active");
@@ -311,9 +313,9 @@ let _ = filtered;
 use crabular::{Table, Row, Alignment};
 
 let mut table = Table::new();
-table.set_headers(Row::from(&["A", "B"], Alignment::Left));
-table.add_row(Row::from(&["1", "2"], Alignment::Left));
-table.add_row(Row::from(&["3", "4"], Alignment::Left));
+table.set_headers(["A", "B"]);
+table.add_row(["1", "2"]);
+table.add_row(["3", "4"]);
 
 // Add column at the end (first value is header, rest are row values)
 table.add_column(&["C", "5", "6"], Alignment::Left);
