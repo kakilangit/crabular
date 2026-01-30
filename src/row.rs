@@ -62,6 +62,45 @@ impl Row {
     pub fn is_empty(&self) -> bool {
         self.cells.is_empty()
     }
+
+    /// Attempts to convert the row's cells into a fixed-size array.
+    ///
+    /// This method provides zero-overhead access to rows with a known number of columns,
+    /// eliminating bounds checking in hot paths.
+    ///
+    /// # Arguments
+    /// * `N` - The expected number of columns in the row
+    ///
+    /// # Returns
+    /// * `Some(&[Cell; N])` if the row has exactly N cells
+    /// * `None` if the row has a different number of cells
+    ///
+    /// # Examples
+    /// ```
+    /// use crabular::{Alignment, Row};
+    ///
+    /// let row = Row::from(&["a", "b", "c"], Alignment::Left);
+    /// if let Some(array) = row.as_array::<3>() {
+    ///     // Stack-allocated, no bounds checking needed
+    ///     assert_eq!(array[0].content(), "a");
+    /// }
+    /// ```
+    #[must_use]
+    pub fn as_array<const N: usize>(&self) -> Option<&[Cell; N]> {
+        self.cells.as_array()
+    }
+}
+
+impl core::fmt::Display for Row {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        for (i, cell) in self.cells.iter().enumerate() {
+            if i > 0 {
+                write!(f, " | ")?;
+            }
+            write!(f, "{}", cell.content())?;
+        }
+        Ok(())
+    }
 }
 
 impl Default for Row {
@@ -156,5 +195,50 @@ mod tests {
         for (orig, copy) in row.cells().iter().zip(cloned.cells().iter()) {
             assert_eq!(orig.content(), copy.content());
         }
+    }
+
+    #[test]
+    fn display_trait_empty_row() {
+        let row = Row::new();
+        let displayed = format!("{row}");
+        assert_eq!(displayed, "");
+    }
+
+    #[test]
+    fn display_trait_single_cell() {
+        let row = Row::from(&["hello"], Alignment::Left);
+        let displayed = format!("{row}");
+        assert_eq!(displayed, "hello");
+    }
+
+    #[test]
+    fn display_trait_multiple_cells() {
+        let row = Row::from(&["a", "b", "c"], Alignment::Left);
+        let displayed = format!("{row}");
+        assert_eq!(displayed, "a | b | c");
+    }
+
+    #[test]
+    fn as_array_matching_size() {
+        let row = Row::from(&["a", "b", "c"], Alignment::Left);
+        let array = row.as_array::<3>();
+        assert!(array.is_some());
+        assert_eq!(array.unwrap()[0].content(), "a");
+        assert_eq!(array.unwrap()[1].content(), "b");
+        assert_eq!(array.unwrap()[2].content(), "c");
+    }
+
+    #[test]
+    fn as_array_wrong_size() {
+        let row = Row::from(&["a", "b", "c"], Alignment::Left);
+        assert!(row.as_array::<2>().is_none());
+        assert!(row.as_array::<4>().is_none());
+    }
+
+    #[test]
+    fn as_array_empty_row() {
+        let row = Row::new();
+        assert!(row.as_array::<0>().is_some());
+        assert!(row.as_array::<1>().is_none());
     }
 }

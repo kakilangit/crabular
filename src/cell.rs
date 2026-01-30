@@ -41,6 +41,12 @@ impl Cell {
     }
 }
 
+impl core::fmt::Display for Cell {
+    fn fmt(&self, f: &mut core::fmt::Formatter) -> core::fmt::Result {
+        write!(f, "{}", self.content)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -97,5 +103,26 @@ mod tests {
         cell.set_span(3);
         let cloned = cell.clone();
         assert_eq!(cloned.span(), 3);
+    }
+
+    #[test]
+    fn display_trait_content() {
+        let cell = Cell::new("hello world", Alignment::Left);
+        let displayed = format!("{cell}");
+        assert_eq!(displayed, "hello world");
+    }
+
+    #[test]
+    fn display_trait_empty() {
+        let cell = Cell::new("", Alignment::Center);
+        let displayed = format!("{cell}");
+        assert_eq!(displayed, "");
+    }
+
+    #[test]
+    fn display_trait_unicode() {
+        let cell = Cell::new("日本語", Alignment::Right);
+        let displayed = format!("{cell}");
+        assert_eq!(displayed, "日本語");
     }
 }
