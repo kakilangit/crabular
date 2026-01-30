@@ -171,8 +171,9 @@ mod tests {
 
     #[test]
     fn with_rows_iter() {
-        let data = vec![vec!["Alice", "30"], vec!["Kata", "25"]];
-        let table = TableBuilder::new().rows(data).build();
+        let table = TableBuilder::new()
+            .rows([["Alice", "30"], ["Kata", "25"]])
+            .build();
         assert_eq!(table.len(), 2);
     }
 
