@@ -1,5 +1,6 @@
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum WidthConstraint {
+    #[default]
     Auto,
     Fixed(usize),
     Min(usize),
@@ -34,22 +35,6 @@ mod tests {
         ];
         for (a, b, expected) in cases {
             assert_eq!(a == b, expected);
-        }
-    }
-
-    #[test]
-    fn clone_trait() {
-        let cases = [
-            WidthConstraint::Auto,
-            WidthConstraint::Fixed(10),
-            WidthConstraint::Min(5),
-            WidthConstraint::Max(20),
-            WidthConstraint::Proportional(50),
-            WidthConstraint::Wrap(15),
-        ];
-        for constraint in cases {
-            let cloned = constraint.clone();
-            assert_eq!(constraint, cloned);
         }
     }
 

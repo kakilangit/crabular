@@ -13,10 +13,14 @@ impl Row {
     }
 
     #[must_use]
-    pub fn from(contents: &[&str], default_alignment: Alignment) -> Self {
+    pub fn with_alignment<I, S>(contents: I, alignment: Alignment) -> Self
+    where
+        I: IntoIterator<Item = S>,
+        S: AsRef<str>,
+    {
         let cells = contents
-            .iter()
-            .map(|&content| Cell::new(content, default_alignment))
+            .into_iter()
+            .map(|s| Cell::new(s.as_ref(), alignment))
             .collect();
         Self { cells }
     }
@@ -79,7 +83,7 @@ impl Row {
     /// ```
     /// use crabular::{Alignment, Row};
     ///
-    /// let row = Row::from(&["a", "b", "c"], Alignment::Left);
+    /// let row = Row::with_alignment(&["a", "b", "c"], Alignment::Left);
     /// if let Some(array) = row.as_array::<3>() {
     ///     // Stack-allocated, no bounds checking needed
     ///     assert_eq!(array[0].content(), "a");
@@ -109,6 +113,30 @@ impl Default for Row {
     }
 }
 
+impl<S: AsRef<str>> From<&[S]> for Row {
+    fn from(contents: &[S]) -> Self {
+        Self::with_alignment(contents, Alignment::default())
+    }
+}
+
+impl<S: AsRef<str>> From<Vec<S>> for Row {
+    fn from(contents: Vec<S>) -> Self {
+        Self::with_alignment(contents, Alignment::default())
+    }
+}
+
+impl<S: AsRef<str>, const N: usize> From<[S; N]> for Row {
+    fn from(contents: [S; N]) -> Self {
+        Self::with_alignment(contents, Alignment::default())
+    }
+}
+
+impl<S: AsRef<str>, const N: usize> From<&[S; N]> for Row {
+    fn from(contents: &[S; N]) -> Self {
+        Self::with_alignment(contents, Alignment::default())
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -134,7 +162,7 @@ mod tests {
             (vec!["a", "b", "c"], 3),
         ];
         for (contents, expected_len) in cases {
-            let row = Row::from(&contents, Alignment::Left);
+            let row = Row::with_alignment(&contents, Alignment::Left);
             assert_eq!(row.len(), expected_len);
             for (i, &content) in contents.iter().enumerate() {
                 assert_eq!(row.cells()[i].content(), content);
@@ -154,7 +182,7 @@ mod tests {
 
     #[test]
     fn insert() {
-        let mut row = Row::from(&["a", "c"], Alignment::Left);
+        let mut row = Row::with_alignment(["a", "c"], Alignment::Left);
         row.insert(1, Cell::new("b", Alignment::Left));
         assert_eq!(row.len(), 3);
         assert_eq!(row.cells()[0].content(), "a");
@@ -164,7 +192,7 @@ mod tests {
 
     #[test]
     fn remove() {
-        let mut row = Row::from(&["a", "b", "c"], Alignment::Left);
+        let mut row = Row::with_alignment(["a", "b", "c"], Alignment::Left);
         let removed = row.remove(1);
         assert!(removed.is_some());
         assert_eq!(removed.unwrap().content(), "b");
@@ -173,14 +201,14 @@ mod tests {
 
     #[test]
     fn remove_out_of_bounds() {
-        let mut row = Row::from(&["a"], Alignment::Left);
+        let mut row = Row::with_alignment(["a"], Alignment::Left);
         assert!(row.remove(5).is_none());
         assert_eq!(row.len(), 1);
     }
 
     #[test]
     fn cell_mut() {
-        let mut row = Row::from(&["a", "b"], Alignment::Left);
+        let mut row = Row::with_alignment(["a", "b"], Alignment::Left);
         if let Some(cell) = row.cell_mut(0) {
             cell.set_alignment(Alignment::Right);
         }
@@ -189,7 +217,7 @@ mod tests {
 
     #[test]
     fn clone_trait() {
-        let row = Row::from(&["a", "b"], Alignment::Left);
+        let row = Row::with_alignment(["a", "b"], Alignment::Left);
         let cloned = row.clone();
         assert_eq!(row.len(), cloned.len());
         for (orig, copy) in row.cells().iter().zip(cloned.cells().iter()) {
@@ -206,21 +234,21 @@ mod tests {
 
     #[test]
     fn display_trait_single_cell() {
-        let row = Row::from(&["hello"], Alignment::Left);
+        let row = Row::with_alignment(["hello"], Alignment::Left);
         let displayed = format!("{row}");
         assert_eq!(displayed, "hello");
     }
 
     #[test]
     fn display_trait_multiple_cells() {
-        let row = Row::from(&["a", "b", "c"], Alignment::Left);
+        let row = Row::with_alignment(["a", "b", "c"], Alignment::Left);
         let displayed = format!("{row}");
         assert_eq!(displayed, "a | b | c");
     }
 
     #[test]
     fn as_array_matching_size() {
-        let row = Row::from(&["a", "b", "c"], Alignment::Left);
+        let row = Row::with_alignment(["a", "b", "c"], Alignment::Left);
         let array = row.as_array::<3>();
         assert!(array.is_some());
         assert_eq!(array.unwrap()[0].content(), "a");
@@ -230,7 +258,7 @@ mod tests {
 
     #[test]
     fn as_array_wrong_size() {
-        let row = Row::from(&["a", "b", "c"], Alignment::Left);
+        let row = Row::with_alignment(["a", "b", "c"], Alignment::Left);
         assert!(row.as_array::<2>().is_none());
         assert!(row.as_array::<4>().is_none());
     }
@@ -240,5 +268,44 @@ mod tests {
         let row = Row::new();
         assert!(row.as_array::<0>().is_some());
         assert!(row.as_array::<1>().is_none());
+    }
+
+    #[test]
+    fn from_array() {
+        let row: Row = ["a", "b", "c"].into();
+        assert_eq!(row.len(), 3);
+        assert_eq!(row.cells()[0].content(), "a");
+        assert_eq!(row.cells()[1].content(), "b");
+        assert_eq!(row.cells()[2].content(), "c");
+    }
+
+    #[test]
+    fn from_array_ref() {
+        let row: Row = (&["a", "b"]).into();
+        assert_eq!(row.len(), 2);
+        assert_eq!(row.cells()[0].content(), "a");
+    }
+
+    #[test]
+    fn from_vec() {
+        let row: Row = vec!["x", "y"].into();
+        assert_eq!(row.len(), 2);
+        assert_eq!(row.cells()[0].content(), "x");
+        assert_eq!(row.cells()[1].content(), "y");
+    }
+
+    #[test]
+    fn from_vec_string() {
+        let row: Row = vec!["hello".to_string(), "world".to_string()].into();
+        assert_eq!(row.len(), 2);
+        assert_eq!(row.cells()[0].content(), "hello");
+        assert_eq!(row.cells()[1].content(), "world");
+    }
+
+    #[test]
+    fn from_slice() {
+        let data = ["a", "b", "c"];
+        let row: Row = data.as_slice().into();
+        assert_eq!(row.len(), 3);
     }
 }

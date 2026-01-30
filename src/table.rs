@@ -5,7 +5,7 @@ use crate::padding::Padding;
 use crate::row::Row;
 use crate::style::{BorderChars, TableStyle};
 use crate::vertical_alignment::VerticalAlignment;
-use std::cell::RefCell;
+use core::cell::RefCell;
 
 pub struct Table {
     rows: Vec<Row>,
@@ -42,18 +42,18 @@ impl Table {
         *self.cached_widths.borrow_mut() = None;
     }
 
-    pub fn set_headers(&mut self, headers: Row) {
-        self.headers = Some(headers);
+    pub fn set_headers<R: Into<Row>>(&mut self, headers: R) {
+        self.headers = Some(headers.into());
         self.invalidate_cache();
     }
 
-    pub fn add_row(&mut self, row: Row) {
-        self.rows.push(row);
+    pub fn add_row<R: Into<Row>>(&mut self, row: R) {
+        self.rows.push(row.into());
         self.invalidate_cache();
     }
 
-    pub fn insert_row(&mut self, index: usize, row: Row) {
-        self.rows.insert(index, row);
+    pub fn insert_row<R: Into<Row>>(&mut self, index: usize, row: R) {
+        self.rows.insert(index, row.into());
         self.invalidate_cache();
     }
 
@@ -109,13 +109,13 @@ impl Table {
         indices.sort_by(|&a, &b| {
             parsed[a]
                 .partial_cmp(&parsed[b])
-                .unwrap_or(std::cmp::Ordering::Equal)
+                .unwrap_or(core::cmp::Ordering::Equal)
         });
 
         // Reorder rows using the sorted indices
         let mut sorted_rows = Vec::with_capacity(self.rows.len());
         for idx in indices {
-            sorted_rows.push(std::mem::take(&mut self.rows[idx]));
+            sorted_rows.push(core::mem::take(&mut self.rows[idx]));
         }
         self.rows = sorted_rows;
     }
@@ -143,13 +143,13 @@ impl Table {
         indices.sort_by(|&a, &b| {
             parsed[b]
                 .partial_cmp(&parsed[a])
-                .unwrap_or(std::cmp::Ordering::Equal)
+                .unwrap_or(core::cmp::Ordering::Equal)
         });
 
         // Reorder rows using the sorted indices
         let mut sorted_rows = Vec::with_capacity(self.rows.len());
         for idx in indices {
-            sorted_rows.push(std::mem::take(&mut self.rows[idx]));
+            sorted_rows.push(core::mem::take(&mut self.rows[idx]));
         }
         self.rows = sorted_rows;
     }
@@ -157,7 +157,7 @@ impl Table {
     /// Sorts the rows using a custom comparison function.
     pub fn sort_by<F>(&mut self, compare: F)
     where
-        F: FnMut(&Row, &Row) -> std::cmp::Ordering,
+        F: FnMut(&Row, &Row) -> core::cmp::Ordering,
     {
         self.rows.sort_by(compare);
     }
@@ -400,19 +400,15 @@ impl Table {
     }
 
     #[must_use]
-    pub fn header(self, headers: &[&str]) -> Self {
-        let row = Row::from(headers, Alignment::Left);
-        let mut table = self;
-        table.set_headers(row);
-        table
+    pub fn header<R: Into<Row>>(mut self, headers: R) -> Self {
+        self.set_headers(headers);
+        self
     }
 
     #[must_use]
-    pub fn row(self, cells: &[&str]) -> Self {
-        let row = Row::from(cells, Alignment::Left);
-        let mut table = self;
-        table.add_row(row);
-        table
+    pub fn row<R: Into<Row>>(mut self, cells: R) -> Self {
+        self.add_row(cells);
+        self
     }
 
     pub fn print(&self) {
@@ -553,7 +549,7 @@ impl Table {
                     current_char_count = potential_len;
                 } else {
                     // Line is full, start a new one
-                    lines.push(std::mem::take(&mut current_line));
+                    lines.push(core::mem::take(&mut current_line));
                     current_char_count = 0;
 
                     if word_char_count > width {
@@ -1027,17 +1023,17 @@ impl Table {
         match vertical_alignment {
             VerticalAlignment::Top => {
                 result.extend(cell_lines);
-                result.extend(std::iter::repeat_n(String::new(), padding_needed));
+                result.extend(core::iter::repeat_n(String::new(), padding_needed));
             }
             VerticalAlignment::Middle => {
                 let top_padding = padding_needed / 2;
                 let bottom_padding = padding_needed - top_padding;
-                result.extend(std::iter::repeat_n(String::new(), top_padding));
+                result.extend(core::iter::repeat_n(String::new(), top_padding));
                 result.extend(cell_lines);
-                result.extend(std::iter::repeat_n(String::new(), bottom_padding));
+                result.extend(core::iter::repeat_n(String::new(), bottom_padding));
             }
             VerticalAlignment::Bottom => {
-                result.extend(std::iter::repeat_n(String::new(), padding_needed));
+                result.extend(core::iter::repeat_n(String::new(), padding_needed));
                 result.extend(cell_lines);
             }
         }
@@ -1215,7 +1211,7 @@ mod tests {
     #[test]
     fn set_headers() {
         let mut table = Table::new();
-        table.set_headers(Row::from(&["A", "B"], Alignment::Left));
+        table.set_headers(Row::with_alignment(["A", "B"], Alignment::Left));
         assert!(table.headers().is_some());
         assert_eq!(table.headers().unwrap().len(), 2);
     }
@@ -1223,7 +1219,7 @@ mod tests {
     #[test]
     fn add_row() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["1", "2"], Alignment::Left));
+        table.add_row(Row::with_alignment(["1", "2"], Alignment::Left));
         assert_eq!(table.len(), 1);
         assert!(!table.is_empty());
     }
@@ -1231,9 +1227,9 @@ mod tests {
     #[test]
     fn insert_row() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["a", "1"], Alignment::Left));
-        table.add_row(Row::from(&["c", "3"], Alignment::Left));
-        table.insert_row(1, Row::from(&["b", "2"], Alignment::Left));
+        table.add_row(Row::with_alignment(["a", "1"], Alignment::Left));
+        table.add_row(Row::with_alignment(["c", "3"], Alignment::Left));
+        table.insert_row(1, Row::with_alignment(["b", "2"], Alignment::Left));
         assert_eq!(table.len(), 3);
         assert_eq!(table.rows()[1].cells()[0].content(), "b");
     }
@@ -1241,8 +1237,8 @@ mod tests {
     #[test]
     fn remove_row() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["a", "1"], Alignment::Left));
-        table.add_row(Row::from(&["b", "2"], Alignment::Left));
+        table.add_row(Row::with_alignment(["a", "1"], Alignment::Left));
+        table.add_row(Row::with_alignment(["b", "2"], Alignment::Left));
         let removed = table.remove_row(0);
         assert!(removed.is_some());
         assert_eq!(removed.unwrap().cells()[0].content(), "a");
@@ -1252,22 +1248,22 @@ mod tests {
     #[test]
     fn remove_row_out_of_bounds() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["a"], Alignment::Left));
+        table.add_row(Row::with_alignment(["a"], Alignment::Left));
         assert!(table.remove_row(5).is_none());
     }
 
     #[test]
     fn cols() {
-        let table = Table::new().header(&["A", "B", "C"]).row(&["1", "2", "3"]);
+        let table = Table::new().header(["A", "B", "C"]).row(["1", "2", "3"]);
         assert_eq!(table.cols(), 3);
     }
 
     #[test]
     fn fluent_api() {
         let table = Table::new()
-            .header(&["ID", "Value"])
-            .row(&["1", "100"])
-            .row(&["2", "200"]);
+            .header(["ID", "Value"])
+            .row(["1", "100"])
+            .row(["2", "200"]);
         assert_eq!(table.len(), 2);
         assert!(table.headers().is_some());
     }
@@ -1276,9 +1272,9 @@ mod tests {
     #[test]
     fn sort_ascending() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["Charlie"], Alignment::Left));
-        table.add_row(Row::from(&["Kelana"], Alignment::Left));
-        table.add_row(Row::from(&["Kata"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Charlie"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Kelana"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Kata"], Alignment::Left));
         table.sort(0);
         assert_eq!(table.rows()[0].cells()[0].content(), "Charlie");
         assert_eq!(table.rows()[1].cells()[0].content(), "Kata");
@@ -1288,8 +1284,8 @@ mod tests {
     #[test]
     fn sort_descending() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["Kelana"], Alignment::Left));
-        table.add_row(Row::from(&["Charlie"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Kelana"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Charlie"], Alignment::Left));
         table.sort_desc(0);
         assert_eq!(table.rows()[0].cells()[0].content(), "Kelana");
         assert_eq!(table.rows()[1].cells()[0].content(), "Charlie");
@@ -1298,9 +1294,9 @@ mod tests {
     #[test]
     fn sort_num_ascending() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["100"], Alignment::Left));
-        table.add_row(Row::from(&["25"], Alignment::Left));
-        table.add_row(Row::from(&["50"], Alignment::Left));
+        table.add_row(Row::with_alignment(["100"], Alignment::Left));
+        table.add_row(Row::with_alignment(["25"], Alignment::Left));
+        table.add_row(Row::with_alignment(["50"], Alignment::Left));
         table.sort_num(0);
         assert_eq!(table.rows()[0].cells()[0].content(), "25");
         assert_eq!(table.rows()[1].cells()[0].content(), "50");
@@ -1310,8 +1306,8 @@ mod tests {
     #[test]
     fn sort_num_descending() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["25"], Alignment::Left));
-        table.add_row(Row::from(&["100"], Alignment::Left));
+        table.add_row(Row::with_alignment(["25"], Alignment::Left));
+        table.add_row(Row::with_alignment(["100"], Alignment::Left));
         table.sort_num_desc(0);
         assert_eq!(table.rows()[0].cells()[0].content(), "100");
         assert_eq!(table.rows()[1].cells()[0].content(), "25");
@@ -1320,9 +1316,9 @@ mod tests {
     #[test]
     fn sort_preserves_headers() {
         let mut table = Table::new();
-        table.set_headers(Row::from(&["Name"], Alignment::Left));
-        table.add_row(Row::from(&["Charlie"], Alignment::Left));
-        table.add_row(Row::from(&["Kelana"], Alignment::Left));
+        table.set_headers(Row::with_alignment(["Name"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Charlie"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Kelana"], Alignment::Left));
         table.sort(0);
         assert_eq!(table.headers().unwrap().cells()[0].content(), "Name");
     }
@@ -1331,9 +1327,9 @@ mod tests {
     #[test]
     fn filter() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["Kelana", "25"], Alignment::Left));
-        table.add_row(Row::from(&["Kata", "30"], Alignment::Left));
-        table.add_row(Row::from(&["Charlie", "25"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Kelana", "25"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Kata", "30"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Charlie", "25"], Alignment::Left));
         table.filter(|row| row.cells()[1].content() == "25");
         assert_eq!(table.len(), 2);
     }
@@ -1341,9 +1337,9 @@ mod tests {
     #[test]
     fn filter_eq() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["Active"], Alignment::Left));
-        table.add_row(Row::from(&["Inactive"], Alignment::Left));
-        table.add_row(Row::from(&["Active"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Active"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Inactive"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Active"], Alignment::Left));
         table.filter_eq(0, "Active");
         assert_eq!(table.len(), 2);
     }
@@ -1351,9 +1347,9 @@ mod tests {
     #[test]
     fn filter_col() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["100"], Alignment::Left));
-        table.add_row(Row::from(&["50"], Alignment::Left));
-        table.add_row(Row::from(&["75"], Alignment::Left));
+        table.add_row(Row::with_alignment(["100"], Alignment::Left));
+        table.add_row(Row::with_alignment(["50"], Alignment::Left));
+        table.add_row(Row::with_alignment(["75"], Alignment::Left));
         table.filter_col(0, |val| val.parse::<i32>().is_ok_and(|n| n > 60));
         assert_eq!(table.len(), 2);
     }
@@ -1361,9 +1357,9 @@ mod tests {
     #[test]
     fn filter_has() {
         let mut table = Table::new();
-        table.add_row(Row::from(&["Kelana Smith"], Alignment::Left));
-        table.add_row(Row::from(&["Kata Jones"], Alignment::Left));
-        table.add_row(Row::from(&["Charlie Smith"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Kelana Smith"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Kata Jones"], Alignment::Left));
+        table.add_row(Row::with_alignment(["Charlie Smith"], Alignment::Left));
         table.filter_has(0, "Smith");
         assert_eq!(table.len(), 2);
     }
@@ -1372,9 +1368,9 @@ mod tests {
     fn filtered_returns_new_table() {
         let mut table = Table::new();
         table.set_style(TableStyle::Modern);
-        table.add_row(Row::from(&["25"], Alignment::Left));
-        table.add_row(Row::from(&["30"], Alignment::Left));
-        table.add_row(Row::from(&["25"], Alignment::Left));
+        table.add_row(Row::with_alignment(["25"], Alignment::Left));
+        table.add_row(Row::with_alignment(["30"], Alignment::Left));
+        table.add_row(Row::with_alignment(["25"], Alignment::Left));
 
         let filtered = table.filtered(|row| row.cells()[0].content() == "25");
         assert_eq!(table.len(), 3); // Original unchanged
@@ -1386,8 +1382,8 @@ mod tests {
     #[test]
     fn add_column() {
         let mut table = Table::new();
-        table.set_headers(Row::from(&["A", "B"], Alignment::Left));
-        table.add_row(Row::from(&["1", "2"], Alignment::Left));
+        table.set_headers(Row::with_alignment(["A", "B"], Alignment::Left));
+        table.add_row(Row::with_alignment(["1", "2"], Alignment::Left));
         table.add_column(&["C", "3"], Alignment::Right);
         assert_eq!(table.cols(), 3);
         assert_eq!(table.headers().unwrap().cells()[2].content(), "C");
@@ -1396,8 +1392,8 @@ mod tests {
     #[test]
     fn insert_column() {
         let mut table = Table::new();
-        table.set_headers(Row::from(&["A", "C"], Alignment::Left));
-        table.add_row(Row::from(&["1", "3"], Alignment::Left));
+        table.set_headers(Row::with_alignment(["A", "C"], Alignment::Left));
+        table.add_row(Row::with_alignment(["1", "3"], Alignment::Left));
         table.insert_column(1, &["B", "2"], Alignment::Center);
         assert_eq!(table.headers().unwrap().cells()[1].content(), "B");
     }
@@ -1405,8 +1401,8 @@ mod tests {
     #[test]
     fn remove_column() {
         let mut table = Table::new();
-        table.set_headers(Row::from(&["A", "B", "C"], Alignment::Left));
-        table.add_row(Row::from(&["1", "2", "3"], Alignment::Left));
+        table.set_headers(Row::with_alignment(["A", "B", "C"], Alignment::Left));
+        table.add_row(Row::with_alignment(["1", "2", "3"], Alignment::Left));
         assert!(table.remove_column(1));
         assert_eq!(table.cols(), 2);
         assert_eq!(table.headers().unwrap().cells()[1].content(), "C");
@@ -1415,7 +1411,7 @@ mod tests {
     // Render tests
     #[test]
     fn render_into_reuses_buffer() {
-        let table = Table::new().header(&["A", "B"]).row(&["1", "2"]);
+        let table = Table::new().header(["A", "B"]).row(["1", "2"]);
 
         let mut buffer = Vec::with_capacity(10);
         let original_capacity = buffer.capacity();
@@ -1432,7 +1428,7 @@ mod tests {
 
     #[test]
     fn render_single_row() {
-        let table = Table::new().row(&["a", "b"]);
+        let table = Table::new().row(["a", "b"]);
         let output = table.render();
         assert!(!output.is_empty());
         assert!(output.contains('a'));
@@ -1441,7 +1437,7 @@ mod tests {
 
     #[test]
     fn render_with_headers() {
-        let table = Table::new().header(&["X", "Y"]).row(&["1", "2"]);
+        let table = Table::new().header(["X", "Y"]).row(["1", "2"]);
         let output = table.render();
         assert!(output.contains('X'));
         assert!(output.contains('Y'));
@@ -1520,9 +1516,9 @@ mod tests {
     #[test]
     fn display_trait_matches_render() {
         let table = Table::new()
-            .header(&["Name", "Value"])
-            .row(&["Alice", "100"])
-            .row(&["Bob", "200"]);
+            .header(["Name", "Value"])
+            .row(["Alice", "100"])
+            .row(["Bob", "200"]);
 
         let rendered = table.render();
         let displayed = format!("{table}");
@@ -1541,8 +1537,8 @@ mod tests {
     fn display_trait_with_style() {
         let mut table = Table::new();
         table.set_style(TableStyle::Modern);
-        table.set_headers(Row::from(&["A", "B"], Alignment::Left));
-        table.add_row(Row::from(&["1", "2"], Alignment::Left));
+        table.set_headers(Row::with_alignment(["A", "B"], Alignment::Left));
+        table.add_row(Row::with_alignment(["1", "2"], Alignment::Left));
 
         let rendered = table.render();
         let displayed = format!("{table}");
@@ -1553,9 +1549,9 @@ mod tests {
     #[test]
     fn render_into_matches_render() {
         let table = Table::new()
-            .header(&["Name", "Value"])
-            .row(&["Alice", "100"])
-            .row(&["Bob", "200"]);
+            .header(["Name", "Value"])
+            .row(["Alice", "100"])
+            .row(["Bob", "200"]);
 
         let rendered = table.render();
         let mut buffer = Vec::new();
@@ -1596,11 +1592,11 @@ mod tests {
 
     #[test]
     fn add_row_invalidates_cache() {
-        let mut table = Table::new().header(&["A"]).row(&["1"]);
+        let mut table = Table::new().header(["A"]).row(["1"]);
 
         let first = table.render_cached();
 
-        table.add_row(Row::from(&["2"], Alignment::Left));
+        table.add_row(Row::with_alignment(["2"], Alignment::Left));
 
         let second = table.render_cached();
 
@@ -1609,11 +1605,11 @@ mod tests {
 
     #[test]
     fn set_headers_invalidates_cache() {
-        let mut table = Table::new().header(&["A"]).row(&["1"]);
+        let mut table = Table::new().header(["A"]).row(["1"]);
 
         let first = table.render_cached();
 
-        table.set_headers(Row::from(&["B"], Alignment::Left));
+        table.set_headers(Row::with_alignment(["B"], Alignment::Left));
 
         let second = table.render_cached();
 
@@ -1622,7 +1618,7 @@ mod tests {
 
     #[test]
     fn recalculate_widths_forces_recalculation() {
-        let mut table = Table::new().header(&["A"]).row(&["1"]);
+        let mut table = Table::new().header(["A"]).row(["1"]);
 
         let _ = table.render_cached();
 
@@ -1634,7 +1630,7 @@ mod tests {
 
     #[test]
     fn render_cached_reuses_cache() {
-        let table = Table::new().header(&["A", "B"]).row(&["1", "2"]);
+        let table = Table::new().header(["A", "B"]).row(["1", "2"]);
 
         // First call populates cache
         let first = table.render_cached();
@@ -1651,9 +1647,9 @@ mod tests {
     #[test]
     fn render_cached_matches_render() {
         let table = Table::new()
-            .header(&["Name", "Age"])
-            .row(&["Alice", "30"])
-            .row(&["Bob", "25"]);
+            .header(["Name", "Age"])
+            .row(["Alice", "30"])
+            .row(["Bob", "25"]);
 
         let rendered = table.render();
         let cached = table.render_cached();

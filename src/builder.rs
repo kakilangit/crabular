@@ -14,12 +14,12 @@ use crate::vertical_alignment::VerticalAlignment;
 ///
 /// let table = TableBuilder::new()
 ///     .style(TableStyle::Modern)
-///     .header(&["ID", "Name", "Score"])
+///     .header(["ID", "Name", "Score"])
 ///     .constrain(0, WidthConstraint::Min(3))
 ///     .constrain(1, WidthConstraint::Fixed(20))
 ///     .align(2, Alignment::Right)
-///     .row(&["1", "Alice", "95.5"])
-///     .row(&["2", "Kata", "87.2"])
+///     .row(["1", "Alice", "95.5"])
+///     .row(["2", "Kata", "87.2"])
 ///     .build();
 /// ```
 #[derive(Default)]
@@ -45,28 +45,27 @@ impl TableBuilder {
 
     /// Sets the table headers.
     #[must_use]
-    pub fn header(mut self, headers: &[&str]) -> Self {
-        self.table.set_headers(Row::from(headers, Alignment::Left));
+    pub fn header<R: Into<Row>>(mut self, headers: R) -> Self {
+        self.table.set_headers(headers.into());
         self
     }
 
     /// Adds a row to the table.
     #[must_use]
-    pub fn row(mut self, cells: &[&str]) -> Self {
-        self.table.add_row(Row::from(cells, Alignment::Left));
+    pub fn row<R: Into<Row>>(mut self, cells: R) -> Self {
+        self.table.add_row(cells.into());
         self
     }
 
     /// Adds multiple rows to the table.
     #[must_use]
-    pub fn rows<I, S>(mut self, rows: I) -> Self
+    pub fn rows<I, R>(mut self, rows: I) -> Self
     where
-        I: IntoIterator<Item = Vec<S>>,
-        S: AsRef<str>,
+        I: IntoIterator<Item = R>,
+        R: Into<Row>,
     {
         for row_data in rows {
-            let cells: Vec<&str> = row_data.iter().map(AsRef::as_ref).collect();
-            self.table.add_row(Row::from(&cells, Alignment::Left));
+            self.table.add_row(row_data.into());
         }
         self
     }
@@ -155,7 +154,7 @@ mod tests {
 
     #[test]
     fn with_header() {
-        let table = TableBuilder::new().header(&["A", "B", "C"]).build();
+        let table = TableBuilder::new().header(["A", "B", "C"]).build();
         assert!(table.headers().is_some());
         assert_eq!(table.headers().unwrap().len(), 3);
     }
@@ -163,9 +162,9 @@ mod tests {
     #[test]
     fn with_rows() {
         let table = TableBuilder::new()
-            .row(&["1", "2"])
-            .row(&["3", "4"])
-            .row(&["5", "6"])
+            .row(["1", "2"])
+            .row(["3", "4"])
+            .row(["5", "6"])
             .build();
         assert_eq!(table.len(), 3);
     }
@@ -220,8 +219,8 @@ mod tests {
     #[test]
     fn render() {
         let output = TableBuilder::new()
-            .header(&["Name", "Age"])
-            .row(&["Alice", "30"])
+            .header(["Name", "Age"])
+            .row(["Alice", "30"])
             .render();
         assert!(!output.is_empty());
         assert!(output.contains("Name"));
@@ -232,15 +231,15 @@ mod tests {
     fn full_example() {
         let table = TableBuilder::new()
             .style(TableStyle::Modern)
-            .header(&["ID", "Name", "Score"])
+            .header(["ID", "Name", "Score"])
             .constrain(0, WidthConstraint::Fixed(5))
             .constrain(1, WidthConstraint::Min(10))
             .align(2, Alignment::Right)
             .valign(VerticalAlignment::Middle)
             .padding(Padding::uniform(1))
             .spacing(1)
-            .row(&["1", "Alice", "95.5"])
-            .row(&["2", "Kata", "87.2"])
+            .row(["1", "Alice", "95.5"])
+            .row(["2", "Kata", "87.2"])
             .build();
 
         assert_eq!(table.style(), TableStyle::Modern);
