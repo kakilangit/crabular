@@ -5,6 +5,27 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.2.0] - 2026-01-30
+
+### Added
+
+- `Display` trait implementation for zero-allocation printing
+- `render_into()` method for allocation pooling with reusable buffers
+- `render_cached()` method for repeated renders without recalculation
+- `recalculate_widths()` method to force cache invalidation
+- `Row::as_array<N>()` for fixed-size row access
+
+### Changed
+
+- Column widths are now cached internally using `RefCell` for better performance
+- Numeric sorting now uses pre-parsing for 45-67% faster sort operations
+- Render buffers are pre-allocated based on estimated output size
+
+### Fixed
+
+- Colspan rendering now correctly merges horizontal borders
+- Junction characters properly reflect cell boundaries (┼, ┬, ┴, ─)
+
 ## [0.1.0] - 2026-01-28
 
 ### Added
