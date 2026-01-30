@@ -156,18 +156,20 @@ mod tests {
 
     #[test]
     fn from_strings() {
-        let cases = [
-            (vec!["a"], 1),
-            (vec!["a", "b"], 2),
-            (vec!["a", "b", "c"], 3),
-        ];
-        for (contents, expected_len) in cases {
-            let row = Row::with_alignment(&contents, Alignment::Left);
-            assert_eq!(row.len(), expected_len);
-            for (i, &content) in contents.iter().enumerate() {
-                assert_eq!(row.cells()[i].content(), content);
-            }
-        }
+        let row1: Row = ["a"].into();
+        assert_eq!(row1.len(), 1);
+        assert_eq!(row1.cells()[0].content(), "a");
+
+        let row2: Row = ["a", "b"].into();
+        assert_eq!(row2.len(), 2);
+        assert_eq!(row2.cells()[0].content(), "a");
+        assert_eq!(row2.cells()[1].content(), "b");
+
+        let row3: Row = ["a", "b", "c"].into();
+        assert_eq!(row3.len(), 3);
+        assert_eq!(row3.cells()[0].content(), "a");
+        assert_eq!(row3.cells()[1].content(), "b");
+        assert_eq!(row3.cells()[2].content(), "c");
     }
 
     #[test]
@@ -182,7 +184,7 @@ mod tests {
 
     #[test]
     fn insert() {
-        let mut row = Row::with_alignment(["a", "c"], Alignment::Left);
+        let mut row: Row = ["a", "c"].into();
         row.insert(1, Cell::new("b", Alignment::Left));
         assert_eq!(row.len(), 3);
         assert_eq!(row.cells()[0].content(), "a");
@@ -192,7 +194,7 @@ mod tests {
 
     #[test]
     fn remove() {
-        let mut row = Row::with_alignment(["a", "b", "c"], Alignment::Left);
+        let mut row: Row = ["a", "b", "c"].into();
         let removed = row.remove(1);
         assert!(removed.is_some());
         assert_eq!(removed.unwrap().content(), "b");
@@ -201,14 +203,14 @@ mod tests {
 
     #[test]
     fn remove_out_of_bounds() {
-        let mut row = Row::with_alignment(["a"], Alignment::Left);
+        let mut row: Row = ["a"].into();
         assert!(row.remove(5).is_none());
         assert_eq!(row.len(), 1);
     }
 
     #[test]
     fn cell_mut() {
-        let mut row = Row::with_alignment(["a", "b"], Alignment::Left);
+        let mut row: Row = ["a", "b"].into();
         if let Some(cell) = row.cell_mut(0) {
             cell.set_alignment(Alignment::Right);
         }
@@ -217,7 +219,7 @@ mod tests {
 
     #[test]
     fn clone_trait() {
-        let row = Row::with_alignment(["a", "b"], Alignment::Left);
+        let row: Row = ["a", "b"].into();
         let cloned = row.clone();
         assert_eq!(row.len(), cloned.len());
         for (orig, copy) in row.cells().iter().zip(cloned.cells().iter()) {
@@ -234,21 +236,21 @@ mod tests {
 
     #[test]
     fn display_trait_single_cell() {
-        let row = Row::with_alignment(["hello"], Alignment::Left);
+        let row: Row = ["hello"].into();
         let displayed = format!("{row}");
         assert_eq!(displayed, "hello");
     }
 
     #[test]
     fn display_trait_multiple_cells() {
-        let row = Row::with_alignment(["a", "b", "c"], Alignment::Left);
+        let row: Row = ["a", "b", "c"].into();
         let displayed = format!("{row}");
         assert_eq!(displayed, "a | b | c");
     }
 
     #[test]
     fn as_array_matching_size() {
-        let row = Row::with_alignment(["a", "b", "c"], Alignment::Left);
+        let row: Row = ["a", "b", "c"].into();
         let array = row.as_array::<3>();
         assert!(array.is_some());
         assert_eq!(array.unwrap()[0].content(), "a");
@@ -258,7 +260,7 @@ mod tests {
 
     #[test]
     fn as_array_wrong_size() {
-        let row = Row::with_alignment(["a", "b", "c"], Alignment::Left);
+        let row: Row = ["a", "b", "c"].into();
         assert!(row.as_array::<2>().is_none());
         assert!(row.as_array::<4>().is_none());
     }
