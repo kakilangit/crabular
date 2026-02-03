@@ -35,7 +35,7 @@ use crabular::Table;
 
 let table = Table::new()
     .header(["Name", "Age"])
-    .row(["Alice", "30"]);
+    .row(["Kata", "30"]);
 
 // Zero-allocation printing (20-40% faster)
 println!("{table}");
@@ -325,6 +325,27 @@ table.insert_column(1, &["X", "a", "b"], Alignment::Center);
 
 // Remove column
 table.remove_column(2);
+```
+
+## CLI Tool
+
+A separate CLI tool is available at [crabular-cli](https://github.com/kakilangit/crabular/tree/main/crabular-cli):
+
+```bash
+# Install
+cargo install crabular-cli
+
+# From CSV file
+crabular-cli -I data.csv
+
+# From stdin
+cat data.csv | crabular-cli -I -
+
+# With inline data
+crabular-cli -h "Name,Age" --rows "John,30;Jane,25"
+
+# Different styles
+crabular-cli -s markdown -I data.csv
 ```
 
 ## API Reference

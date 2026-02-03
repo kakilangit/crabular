@@ -18,7 +18,7 @@ use crate::vertical_alignment::VerticalAlignment;
 ///     .constrain(0, WidthConstraint::Min(3))
 ///     .constrain(1, WidthConstraint::Fixed(20))
 ///     .align(2, Alignment::Right)
-///     .row(["1", "Alice", "95.5"])
+///     .row(["1", "Kata", "95.5"])
 ///     .row(["2", "Kata", "87.2"])
 ///     .build();
 /// ```
@@ -172,7 +172,7 @@ mod tests {
     #[test]
     fn with_rows_iter() {
         let table = TableBuilder::new()
-            .rows([["Alice", "30"], ["Kata", "25"]])
+            .rows([["Kata", "30"], ["Kata", "25"]])
             .build();
         assert_eq!(table.len(), 2);
     }
@@ -221,11 +221,11 @@ mod tests {
     fn render() {
         let output = TableBuilder::new()
             .header(["Name", "Age"])
-            .row(["Alice", "30"])
+            .row(["Kata", "30"])
             .render();
         assert!(!output.is_empty());
         assert!(output.contains("Name"));
-        assert!(output.contains("Alice"));
+        assert!(output.contains("Kata"));
     }
 
     #[test]
@@ -239,7 +239,7 @@ mod tests {
             .valign(VerticalAlignment::Middle)
             .padding(Padding::uniform(1))
             .spacing(1)
-            .row(["1", "Alice", "95.5"])
+            .row(["1", "Kata", "95.5"])
             .row(["2", "Kata", "87.2"])
             .build();
 

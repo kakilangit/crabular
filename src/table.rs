@@ -1052,7 +1052,7 @@ impl Table {
     ///
     /// Uses different junction characters based on cell boundaries:
     /// - Cross (┼) when both rows have boundary
-    /// - T-down (┬) when only row below has boundary  
+    /// - T-down (┬) when only row below has boundary
     /// - T-up (┴) when only row above has boundary
     /// - Horizontal (─) when neither has boundary
     #[allow(clippy::too_many_arguments)]
@@ -1272,23 +1272,23 @@ mod tests {
     #[test]
     fn sort_ascending() {
         let mut table = Table::new();
-        table.add_row(["Charlie"]);
+        table.add_row(["Squidward"]);
         table.add_row(["Kelana"]);
         table.add_row(["Kata"]);
         table.sort(0);
-        assert_eq!(table.rows()[0].cells()[0].content(), "Charlie");
-        assert_eq!(table.rows()[1].cells()[0].content(), "Kata");
-        assert_eq!(table.rows()[2].cells()[0].content(), "Kelana");
+        assert_eq!(table.rows()[0].cells()[0].content(), "Kata");
+        assert_eq!(table.rows()[1].cells()[0].content(), "Kelana");
+        assert_eq!(table.rows()[2].cells()[0].content(), "Squidward");
     }
 
     #[test]
     fn sort_descending() {
         let mut table = Table::new();
         table.add_row(["Kelana"]);
-        table.add_row(["Charlie"]);
+        table.add_row(["Squidward"]);
         table.sort_desc(0);
-        assert_eq!(table.rows()[0].cells()[0].content(), "Kelana");
-        assert_eq!(table.rows()[1].cells()[0].content(), "Charlie");
+        assert_eq!(table.rows()[0].cells()[0].content(), "Squidward");
+        assert_eq!(table.rows()[1].cells()[0].content(), "Kelana");
     }
 
     #[test]
@@ -1317,7 +1317,7 @@ mod tests {
     fn sort_preserves_headers() {
         let mut table = Table::new();
         table.set_headers(["Name"]);
-        table.add_row(["Charlie"]);
+        table.add_row(["Squidward"]);
         table.add_row(["Kelana"]);
         table.sort(0);
         assert_eq!(table.headers().unwrap().cells()[0].content(), "Name");
@@ -1329,7 +1329,7 @@ mod tests {
         let mut table = Table::new();
         table.add_row(["Kelana", "25"]);
         table.add_row(["Kata", "30"]);
-        table.add_row(["Charlie", "25"]);
+        table.add_row(["Squidward", "25"]);
         table.filter(|row| row.cells()[1].content() == "25");
         assert_eq!(table.len(), 2);
     }
@@ -1359,7 +1359,7 @@ mod tests {
         let mut table = Table::new();
         table.add_row(["Kelana Smith"]);
         table.add_row(["Kata Jones"]);
-        table.add_row(["Charlie Smith"]);
+        table.add_row(["Squidward Smith"]);
         table.filter_has(0, "Smith");
         assert_eq!(table.len(), 2);
     }
@@ -1517,8 +1517,8 @@ mod tests {
     fn display_trait_matches_render() {
         let table = Table::new()
             .header(["Name", "Value"])
-            .row(["Alice", "100"])
-            .row(["Bob", "200"]);
+            .row(["Kata", "100"])
+            .row(["Kelana", "200"]);
 
         let rendered = table.render();
         let displayed = format!("{table}");
@@ -1576,8 +1576,8 @@ mod tests {
     fn render_into_matches_render() {
         let table = Table::new()
             .header(["Name", "Value"])
-            .row(["Alice", "100"])
-            .row(["Bob", "200"]);
+            .row(["Kata", "100"])
+            .row(["Kelana", "200"]);
 
         let rendered = table.render();
         let mut buffer = Vec::new();
@@ -1648,8 +1648,8 @@ mod tests {
     fn render_cached_matches_render() {
         let table = Table::new()
             .header(["Name", "Age"])
-            .row(["Alice", "30"])
-            .row(["Bob", "25"]);
+            .row(["Kata", "30"])
+            .row(["Kelana", "25"]);
 
         let rendered = table.render();
         let cached = table.render_cached();

@@ -1,0 +1,7 @@
+Product,Quantity,Price,Total
+Widget A,5,$10.00,$50.00
+Widget B,3,$15.00,$45.00
+Service,1,$25.00,$25.00
+,,,,Subtotal:,$120.00
+,,,,Tax:,$12.00
+,,,,TOTAL:,$132.00

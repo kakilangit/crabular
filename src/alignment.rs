@@ -6,6 +6,19 @@ pub enum Alignment {
     Right,
 }
 
+impl core::str::FromStr for Alignment {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "left" | "l" => Ok(Alignment::Left),
+            "center" | "c" | "middle" => Ok(Alignment::Center),
+            "right" | "r" => Ok(Alignment::Right),
+            _ => Err(()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -45,5 +58,17 @@ mod tests {
         assert_eq!(format!("{:?}", Alignment::Left), "Left");
         assert_eq!(format!("{:?}", Alignment::Center), "Center");
         assert_eq!(format!("{:?}", Alignment::Right), "Right");
+    }
+
+    #[test]
+    fn from_str() {
+        assert_eq!("left".parse(), Ok(Alignment::Left));
+        assert_eq!("l".parse(), Ok(Alignment::Left));
+        assert_eq!("center".parse(), Ok(Alignment::Center));
+        assert_eq!("c".parse(), Ok(Alignment::Center));
+        assert_eq!("middle".parse(), Ok(Alignment::Center));
+        assert_eq!("right".parse(), Ok(Alignment::Right));
+        assert_eq!("r".parse(), Ok(Alignment::Right));
+        assert_eq!("invalid".parse::<Alignment>(), Err(()));
     }
 }
