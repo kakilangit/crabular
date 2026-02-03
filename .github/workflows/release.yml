@@ -124,7 +124,8 @@ jobs:
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
           echo "Checking if crabular@$VERSION is already published..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/crabular/$VERSION")
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: crabular-release-workflow" "https://crates.io/api/v1/crates/crabular/$VERSION")
+          echo "HTTP_STATUS: $HTTP_STATUS"
           if [ "$HTTP_STATUS" = "200" ]; then
             echo "crabular@$VERSION already published, skipping"
           else
@@ -140,7 +141,8 @@ jobs:
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
           echo "Checking if crabular-cli@$VERSION is already published..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/crabular-cli/$VERSION")
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: crabular-release-workflow" "https://crates.io/api/v1/crates/crabular-cli/$VERSION")
+          echo "HTTP_STATUS: $HTTP_STATUS"
           if [ "$HTTP_STATUS" = "200" ]; then
             echo "crabular-cli@$VERSION already published, skipping"
           else
@@ -170,14 +172,16 @@ jobs:
           VERSION="${{ needs.check-version.outputs.version }}"
 
           echo "Verifying crabular@$VERSION exists on crates.io..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/crabular/$VERSION")
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: crabular-release-workflow" "https://crates.io/api/v1/crates/crabular/$VERSION")
+          echo "HTTP_STATUS: $HTTP_STATUS"
           if [ "$HTTP_STATUS" != "200" ]; then
             echo "crabular@$VERSION not found on crates.io"
             exit 1
           fi
 
           echo "Verifying crabular-cli@$VERSION exists on crates.io..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/crabular-cli/$VERSION")
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: crabular-release-workflow" "https://crates.io/api/v1/crates/crabular-cli/$VERSION")
+          echo "HTTP_STATUS: $HTTP_STATUS"
           if [ "$HTTP_STATUS" != "200" ]; then
             echo "crabular-cli@$VERSION not found on crates.io"
             exit 1
