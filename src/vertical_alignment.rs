@@ -10,6 +10,19 @@ pub enum VerticalAlignment {
     Bottom,
 }
 
+impl core::str::FromStr for VerticalAlignment {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "top" | "t" => Ok(VerticalAlignment::Top),
+            "middle" | "m" | "center" => Ok(VerticalAlignment::Middle),
+            "bottom" | "b" => Ok(VerticalAlignment::Bottom),
+            _ => Err(()),
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -45,5 +58,17 @@ mod tests {
         assert_eq!(format!("{:?}", VerticalAlignment::Top), "Top");
         assert_eq!(format!("{:?}", VerticalAlignment::Middle), "Middle");
         assert_eq!(format!("{:?}", VerticalAlignment::Bottom), "Bottom");
+    }
+
+    #[test]
+    fn from_str() {
+        assert_eq!("top".parse(), Ok(VerticalAlignment::Top));
+        assert_eq!("t".parse(), Ok(VerticalAlignment::Top));
+        assert_eq!("middle".parse(), Ok(VerticalAlignment::Middle));
+        assert_eq!("m".parse(), Ok(VerticalAlignment::Middle));
+        assert_eq!("center".parse(), Ok(VerticalAlignment::Middle));
+        assert_eq!("bottom".parse(), Ok(VerticalAlignment::Bottom));
+        assert_eq!("b".parse(), Ok(VerticalAlignment::Bottom));
+        assert_eq!("invalid".parse::<VerticalAlignment>(), Err(()));
     }
 }

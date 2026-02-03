@@ -19,7 +19,7 @@ fmt-check: ## Check code formatting
 
 .PHONY: clippy
 clippy: ## Run clippy lints
-	cargo +$(RUST_VERSION) clippy --all-features --all-targets -- -D warnings
+	cargo +$(RUST_VERSION) clippy --all-targets --all-features -- -D warnings -W clippy::pedantic
 
 .PHONY: test
 test: ## Run all tests
@@ -32,6 +32,14 @@ test-doc: ## Run documentation tests
 .PHONY: examples
 examples: ## Run examples
 	cargo +$(RUST_VERSION) run --example table
+	@echo "Running crabular-cli with CSV..."
+	cd crabular-cli && cargo +$(RUST_VERSION) run --release -- -i ../examples/data.csv
+	@echo "Running crabular-cli with TSV..."
+	cd crabular-cli && cargo +$(RUST_VERSION) run --release -- -i ../examples/data.tsv --format tsv
+	@echo "Running crabular-cli with JSON..."
+	cd crabular-cli && cargo +$(RUST_VERSION) run --release -- -i ../examples/data.json --format json
+	@echo "Running crabular-cli with JSONL..."
+	cd crabular-cli && cargo +$(RUST_VERSION) run --release -- -i ../examples/data.jsonl --format jsonl
 
 .PHONY: ci
 ci: fmt-check clippy test test-doc examples ## Run all CI checks

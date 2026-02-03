@@ -1,3 +1,5 @@
+use core::str::FromStr;
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum TableStyle {
     #[default]
@@ -6,6 +8,21 @@ pub enum TableStyle {
     Minimal,
     Compact,
     Markdown,
+}
+
+impl FromStr for TableStyle {
+    type Err = ();
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        match s.to_lowercase().as_str() {
+            "classic" => Ok(TableStyle::Classic),
+            "modern" => Ok(TableStyle::Modern),
+            "minimal" => Ok(TableStyle::Minimal),
+            "compact" => Ok(TableStyle::Compact),
+            "markdown" => Ok(TableStyle::Markdown),
+            _ => Err(()),
+        }
+    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
