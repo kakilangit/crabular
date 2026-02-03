@@ -65,7 +65,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-crabular = "0.3"
+crabular = "0.5"
 ```
 
 ## Quick Start
@@ -335,18 +335,34 @@ A separate CLI tool is available at [crabular-cli](https://github.com/kakilangit
 # Install
 cargo install crabular-cli
 
-# From CSV file
-crabular-cli -I data.csv
+# From CSV file (default: first row is header)
+crabular-cli -i data.csv
+
+# Treat all rows as data (no header)
+crabular-cli -i data.csv --no-header
+
+# Skip first row, treat remaining as data
+crabular-cli -i data.csv --skip-header
 
 # From stdin
-cat data.csv | crabular-cli -I -
-
-# With inline data
-crabular-cli -h "Name,Age" --rows "John,30;Jane,25"
+cat data.csv | crabular-cli -i -
 
 # Different styles
-crabular-cli -s markdown -I data.csv
+crabular-cli -s modern -i data.csv
+crabular-cli -s markdown -i data.csv
 ```
+
+### CLI Options
+
+| Option | Description |
+|--------|-------------|
+| `-i, --input <FILE>` | Input file path (use `-` for stdin) |
+| `-o, --output <FILE>` | Output file path |
+| `-s, --style <STYLE>` | Table style: classic, modern, minimal, compact, markdown |
+| `--format <FORMAT>` | Input format: csv, tsv, ssv, json, jsonl |
+| `-S, --separator <CHAR>` | Field separator (default: auto-detect) |
+| `--no-header` | Treat all rows as data (no header row) |
+| `--skip-header` | Skip first row, treat remaining as data |
 
 ## API Reference
 

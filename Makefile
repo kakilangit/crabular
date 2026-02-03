@@ -33,13 +33,13 @@ test-doc: ## Run documentation tests
 examples: ## Run examples
 	cargo +$(RUST_VERSION) run --example table
 	@echo "Running crabular-cli with CSV..."
-	cd crabular-cli && cargo +$(RUST_VERSION) run --release -- -i ../examples/data.csv
+	cargo +$(RUST_VERSION) run -p crabular-cli --release -- -i examples/data.csv
 	@echo "Running crabular-cli with TSV..."
-	cd crabular-cli && cargo +$(RUST_VERSION) run --release -- -i ../examples/data.tsv --format tsv
+	cargo +$(RUST_VERSION) run -p crabular-cli --release -- -i examples/data.tsv --format tsv
 	@echo "Running crabular-cli with JSON..."
-	cd crabular-cli && cargo +$(RUST_VERSION) run --release -- -i ../examples/data.json --format json
+	cargo +$(RUST_VERSION) run -p crabular-cli --release -- -i examples/data.json --format json
 	@echo "Running crabular-cli with JSONL..."
-	cd crabular-cli && cargo +$(RUST_VERSION) run --release -- -i ../examples/data.jsonl --format jsonl
+	cargo +$(RUST_VERSION) run -p crabular-cli --release -- -i examples/data.jsonl --format jsonl
 
 .PHONY: ci
 ci: fmt-check clippy test test-doc examples ## Run all CI checks

@@ -5,11 +5,28 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.5.0] - 2026-02-03
+
+### Added
+- `--no-header` flag to treat all rows as data (no header row)
+- `--skip-header` flag to skip first row and treat remaining as data
+- Workspace configuration for shared package metadata
+
+### Changed
+- Replaced `--has-header` with clearer `--no-header` and `--skip-header` flags
+- Improved CLI flag semantics for better user experience
+
+### Removed
+- **BREAKING:** `--has-header` flag - use `--no-header` or `--skip-header` instead
+
 ## [0.4.0] - 2026-02-03
 
 ### Added
 - `FromStr` implementation for `TableStyle` to parse style from string
 - Separate `crabular-cli` crate with full CLI support using clap and csv
+
+### Changed
+- Use `core::` prefix for standard library types when available
 
 ### Changed
 - Use `core::` prefix for standard library types when available
@@ -74,3 +91,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.2.0]: https://github.com/kakilangit/crabular/releases/tag/v0.2.0
 [0.3.0]: https://github.com/kakilangit/crabular/releases/tag/v0.3.0
 [0.4.0]: https://github.com/kakilangit/crabular/releases/tag/v0.4.0
+[0.5.0]: https://github.com/kakilangit/crabular/releases/tag/v0.5.0
