@@ -30,6 +30,9 @@ struct Cli {
 
     #[arg(long, default_value = "false")]
     skip_header: bool,
+
+    #[arg(long, value_name = "N")]
+    truncate: Option<usize>,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -78,8 +81,20 @@ struct RowData {
     rows: Vec<Vec<String>>,
 }
 
-trait DataParser: Send {
-    fn parse(&mut self, reader: Box<dyn Read>) -> io::Result<RowData>;
+enum DataParser {
+    Csv(CsvParser),
+    Json(JsonParser),
+    Jsonl(JsonlParser),
+}
+
+impl DataParser {
+    fn parse(&mut self, reader: Box<dyn Read>) -> io::Result<RowData> {
+        match self {
+            DataParser::Csv(p) => p.parse(reader),
+            DataParser::Json(p) => p.parse(reader),
+            DataParser::Jsonl(p) => p.parse(reader),
+        }
+    }
 }
 
 struct CsvParser {
@@ -96,9 +111,7 @@ impl CsvParser {
             skip_header,
         }
     }
-}
 
-impl DataParser for CsvParser {
     fn parse(&mut self, mut reader: Box<dyn Read>) -> io::Result<RowData> {
         let separator_char = self.separator.chars().next().unwrap_or(',');
 
@@ -145,7 +158,7 @@ fn extract_row(obj: &serde_json::Map<String, Value>, keys: &mut Vec<String>) -> 
             let v = obj.get(k);
             match v {
                 Some(Value::String(s)) => s.clone(),
-                Some(v) => format!("{v}").replace('"', ""),
+                Some(v) => serde_json::to_string(v).unwrap_or_default(),
                 None => String::new(),
             }
         })
@@ -154,7 +167,11 @@ fn extract_row(obj: &serde_json::Map<String, Value>, keys: &mut Vec<String>) -> 
 
 struct JsonParser;
 
-impl DataParser for JsonParser {
+impl JsonParser {
+    fn new() -> Self {
+        Self
+    }
+
     fn parse(&mut self, mut reader: Box<dyn Read>) -> io::Result<RowData> {
         let mut content = String::new();
         reader.read_to_string(&mut content)?;
@@ -169,33 +186,23 @@ impl DataParser for JsonParser {
             }
         };
 
-        let arr = match value {
-            Value::Array(arr) => arr,
-            Value::Object(_) => {
-                return Ok(RowData {
-                    headers: None,
-                    rows: vec![vec!["JSON object not supported".to_string()]],
-                });
-            }
-            _ => {
-                return Ok(RowData {
-                    headers: None,
-                    rows: vec![vec!["Invalid JSON format".to_string()]],
-                });
-            }
-        };
-
         let mut keys: Vec<String> = Vec::new();
-        let rows: Vec<Vec<String>> = arr
-            .iter()
-            .filter_map(|item| {
-                if let Value::Object(obj) = item {
-                    Some(extract_row(obj, &mut keys))
-                } else {
-                    None
-                }
-            })
-            .collect();
+        let rows: Vec<Vec<String>> = match value {
+            Value::Array(arr) => arr
+                .iter()
+                .filter_map(|item| {
+                    if let Value::Object(obj) = item {
+                        Some(extract_row(obj, &mut keys))
+                    } else {
+                        None
+                    }
+                })
+                .collect(),
+            Value::Object(obj) => {
+                vec![extract_row(&obj, &mut keys)]
+            }
+            _ => vec![],
+        };
 
         let headers = if keys.is_empty() { None } else { Some(keys) };
 
@@ -205,7 +212,11 @@ impl DataParser for JsonParser {
 
 struct JsonlParser;
 
-impl DataParser for JsonlParser {
+impl JsonlParser {
+    fn new() -> Self {
+        Self
+    }
+
     fn parse(&mut self, mut reader: Box<dyn Read>) -> io::Result<RowData> {
         let mut content = String::new();
         reader.read_to_string(&mut content)?;
@@ -235,13 +246,13 @@ fn create_parser(
     separator: String,
     no_header: bool,
     skip_header: bool,
-) -> Box<dyn DataParser> {
+) -> DataParser {
     match format {
         DataFormat::Csv | DataFormat::Tsv | DataFormat::Ssv => {
-            Box::new(CsvParser::new(separator, no_header, skip_header))
+            DataParser::Csv(CsvParser::new(separator, no_header, skip_header))
         }
-        DataFormat::Json => Box::new(JsonParser),
-        DataFormat::Jsonl => Box::new(JsonlParser),
+        DataFormat::Json => DataParser::Json(JsonParser::new()),
+        DataFormat::Jsonl => DataParser::Jsonl(JsonlParser::new()),
     }
 }
 
@@ -251,6 +262,9 @@ fn main() -> io::Result<()> {
     let style: TableStyle = args.style.into();
 
     let mut builder = TableBuilder::new().style(style);
+    if let Some(limit) = args.truncate {
+        builder = builder.truncate(limit);
+    }
 
     let file: Box<dyn Read> = if let Some(input_path) = &args.input {
         if input_path.as_os_str() == "-" {
@@ -271,8 +285,8 @@ fn main() -> io::Result<()> {
         args.separator.clone()
     };
 
-    let mut parser = create_parser(args.format, separator, args.no_header, args.skip_header);
-    let data = parser.parse(file)?;
+    let mut data_parser = create_parser(args.format, separator, args.no_header, args.skip_header);
+    let data = data_parser.parse(file)?;
 
     if let Some(headers) = data.headers {
         builder = builder.header(headers.iter().map(String::as_str).collect::<Vec<_>>());

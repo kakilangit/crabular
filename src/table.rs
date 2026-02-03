@@ -16,6 +16,7 @@ pub struct Table {
     column_spacing: usize,
     column_alignments: Vec<Alignment>,
     vertical_alignment: VerticalAlignment,
+    truncate: Option<usize>,
     /// Cached column widths for repeated renders.
     /// Uses interior mutability to allow caching in `&self` methods.
     cached_widths: RefCell<Option<Vec<usize>>>,
@@ -33,6 +34,7 @@ impl Table {
             column_spacing: 1,
             column_alignments: Vec::new(),
             vertical_alignment: VerticalAlignment::Top,
+            truncate: None,
             cached_widths: RefCell::new(None),
         }
     }
@@ -43,17 +45,35 @@ impl Table {
     }
 
     pub fn set_headers<R: Into<Row>>(&mut self, headers: R) {
-        self.headers = Some(headers.into());
+        let row = headers.into();
+        let row = if let Some(limit) = self.truncate {
+            Self::truncate_row(&row, limit)
+        } else {
+            row
+        };
+        self.headers = Some(row);
         self.invalidate_cache();
     }
 
     pub fn add_row<R: Into<Row>>(&mut self, row: R) {
-        self.rows.push(row.into());
+        let row = row.into();
+        let row = if let Some(limit) = self.truncate {
+            Self::truncate_row(&row, limit)
+        } else {
+            row
+        };
+        self.rows.push(row);
         self.invalidate_cache();
     }
 
     pub fn insert_row<R: Into<Row>>(&mut self, index: usize, row: R) {
-        self.rows.insert(index, row.into());
+        let row = row.into();
+        let row = if let Some(limit) = self.truncate {
+            Self::truncate_row(&row, limit)
+        } else {
+            row
+        };
+        self.rows.insert(index, row);
         self.invalidate_cache();
     }
 
@@ -219,6 +239,7 @@ impl Table {
             column_spacing: self.column_spacing,
             column_alignments: self.column_alignments.clone(),
             vertical_alignment: self.vertical_alignment,
+            truncate: self.truncate,
             cached_widths: RefCell::new(None),
         }
     }
@@ -400,15 +421,39 @@ impl Table {
     }
 
     #[must_use]
+    pub fn row<R: Into<Row>>(mut self, cells: R) -> Self {
+        self.add_row(cells.into());
+        self
+    }
+
+    #[must_use]
     pub fn header<R: Into<Row>>(mut self, headers: R) -> Self {
         self.set_headers(headers);
         self
     }
 
     #[must_use]
-    pub fn row<R: Into<Row>>(mut self, cells: R) -> Self {
-        self.add_row(cells);
+    pub fn truncate(mut self, limit: usize) -> Self {
+        self.truncate = Some(limit);
         self
+    }
+
+    fn truncate_row(row: &Row, limit: usize) -> Row {
+        let mut new_row = Row::new();
+        for cell in row.cells() {
+            let content = cell.content();
+            let truncated = if content.len() > limit {
+                if limit > 3 {
+                    format!("{}...", &content[..limit - 3])
+                } else {
+                    content[..limit].to_string()
+                }
+            } else {
+                content.to_string()
+            };
+            new_row.push(Cell::new(&truncated, cell.alignment()));
+        }
+        new_row
     }
 
     pub fn print(&self) {

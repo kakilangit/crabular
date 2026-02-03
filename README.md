@@ -115,6 +115,40 @@ let output = TableBuilder::new()
 print!("{output}");  // Or use .print() directly with std feature
 ```
 
+## Truncation
+
+Limit cell content length with truncation:
+
+```rust
+use crabular::{TableBuilder, TableStyle};
+
+let output = TableBuilder::new()
+    .style(TableStyle::Modern)
+    .header(["ID", "Name", "Description", "Score"])
+    .truncate(20)  // Truncate to 20 characters with "..." suffix
+    .rows([
+        ["1", "Kata", "A very long description that should be truncated", "95.5"],
+        ["2", "Kelana", "Short desc", "87.2"],
+        ["3", "Squidward", "Another extremely long description text here", "92.0"],
+    ])
+    .render();
+
+print!("{output}");
+```
+
+Output:
+```text
+┌─────┬────────────┬───────────────────────┬───────┐
+│ ID  │ Name       │ Description           │ Score │
+├─────┼────────────┼───────────────────────┼───────┤
+│ 1   │ Kata       │ A very long descr...  │ 95.5  │
+│ 2   │ Kelana     │ Short desc            │ 87.2  │
+│ 3   │ Squidward  │ Another extremely...  │ 92.0  │
+└─────┴────────────┴───────────────────────┴───────┘
+```
+
+**Note:** Truncation is applied lazily during row insertion, so there's zero overhead when not used.
+
 ## Table Styles
 
 ```rust
@@ -327,7 +361,7 @@ table.insert_column(1, &["X", "a", "b"], Alignment::Center);
 table.remove_column(2);
 ```
 
-## CLI Tool
+ ## CLI Tool
 
 A separate CLI tool is available at [crabular-cli](https://github.com/kakilangit/crabular/tree/main/crabular-cli):
 
@@ -338,6 +372,9 @@ cargo install crabular-cli
 # From CSV file (default: first row is header)
 crabular-cli -i data.csv
 
+# Truncate long cell content to 20 characters
+crabular-cli -i data.csv --truncate 20
+
 # Treat all rows as data (no header)
 crabular-cli -i data.csv --no-header
 
@@ -346,6 +383,9 @@ crabular-cli -i data.csv --skip-header
 
 # From stdin
 cat data.csv | crabular-cli -i -
+
+# From JSON (supports nested objects)
+echo '[{"name":"Kata","info":{"city":"NYC"}}]' | crabular-cli -i - --format json
 
 # Different styles
 crabular-cli -s modern -i data.csv
@@ -361,10 +401,11 @@ crabular-cli -s markdown -i data.csv
 | `-s, --style <STYLE>` | Table style: classic, modern, minimal, compact, markdown |
 | `--format <FORMAT>` | Input format: csv, tsv, ssv, json, jsonl |
 | `-S, --separator <CHAR>` | Field separator (default: auto-detect) |
+| `--truncate N` | Truncate cell content to N characters with "..." suffix |
 | `--no-header` | Treat all rows as data (no header row) |
 | `--skip-header` | Skip first row, treat remaining as data |
 
-## API Reference
+ ## API Reference
 
 ### Table
 
@@ -373,6 +414,7 @@ crabular-cli -s markdown -i data.csv
 | `new()` | Create empty table |
 | `set_headers(row)` | Set header row |
 | `add_row(row)` | Add data row |
+| `truncate(limit)` | Set max cell content length |
 | `render()` | Render to string |
 | `print()` | Print to stdout |
 | `set_style(style)` | Set table style |
@@ -396,6 +438,7 @@ crabular-cli -s markdown -i data.csv
 | `header(cells)` | Set header row |
 | `row(cells)` | Add data row |
 | `rows(data)` | Add multiple rows |
+| `truncate(limit)` | Set max cell content length |
 | `align(col, alignment)` | Set column alignment |
 | `valign(alignment)` | Set vertical alignment |
 | `constrain(col, constraint)` | Set column constraint |
