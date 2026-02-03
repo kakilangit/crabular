@@ -25,8 +25,11 @@ struct Cli {
     #[arg(long, value_enum, default_value = "csv")]
     format: DataFormat,
 
-    #[arg(long, default_value = "true")]
-    has_header: bool,
+    #[arg(long, default_value = "false")]
+    no_header: bool,
+
+    #[arg(long, default_value = "false")]
+    skip_header: bool,
 }
 
 #[derive(Debug, Clone, Copy, ValueEnum)]
@@ -81,14 +84,16 @@ trait DataParser: Send {
 
 struct CsvParser {
     separator: String,
-    has_header: bool,
+    no_header: bool,
+    skip_header: bool,
 }
 
 impl CsvParser {
-    fn new(separator: String, has_header: bool) -> Self {
+    fn new(separator: String, no_header: bool, skip_header: bool) -> Self {
         Self {
             separator,
-            has_header,
+            no_header,
+            skip_header,
         }
     }
 }
@@ -104,12 +109,22 @@ impl DataParser for CsvParser {
 
         let mut headers: Option<Vec<String>> = None;
         let mut rows: Vec<Vec<String>> = Vec::new();
+        let mut first_row = true;
 
         for result in rdr.records() {
             let record: csv::StringRecord = result?;
             let row: Vec<String> = record.iter().map(ToString::to_string).collect();
 
-            if self.has_header && headers.is_none() {
+            if self.skip_header && first_row {
+                first_row = false;
+                continue;
+            }
+
+            first_row = false;
+
+            if self.no_header || self.skip_header {
+                rows.push(row);
+            } else if headers.is_none() {
                 headers = Some(row);
             } else {
                 rows.push(row);
@@ -150,7 +165,7 @@ impl DataParser for JsonParser {
                 return Ok(RowData {
                     headers: None,
                     rows: vec![vec!["Invalid JSON format".to_string()]],
-                })
+                });
             }
         };
 
@@ -160,13 +175,13 @@ impl DataParser for JsonParser {
                 return Ok(RowData {
                     headers: None,
                     rows: vec![vec!["JSON object not supported".to_string()]],
-                })
+                });
             }
             _ => {
                 return Ok(RowData {
                     headers: None,
                     rows: vec![vec!["Invalid JSON format".to_string()]],
-                })
+                });
             }
         };
 
@@ -215,10 +230,15 @@ impl DataParser for JsonlParser {
     }
 }
 
-fn create_parser(format: DataFormat, separator: String, has_header: bool) -> Box<dyn DataParser> {
+fn create_parser(
+    format: DataFormat,
+    separator: String,
+    no_header: bool,
+    skip_header: bool,
+) -> Box<dyn DataParser> {
     match format {
         DataFormat::Csv | DataFormat::Tsv | DataFormat::Ssv => {
-            Box::new(CsvParser::new(separator, has_header))
+            Box::new(CsvParser::new(separator, no_header, skip_header))
         }
         DataFormat::Json => Box::new(JsonParser),
         DataFormat::Jsonl => Box::new(JsonlParser),
@@ -251,7 +271,7 @@ fn main() -> io::Result<()> {
         args.separator.clone()
     };
 
-    let mut parser = create_parser(args.format, separator, args.has_header);
+    let mut parser = create_parser(args.format, separator, args.no_header, args.skip_header);
     let data = parser.parse(file)?;
 
     if let Some(headers) = data.headers {
