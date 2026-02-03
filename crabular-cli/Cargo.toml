@@ -7,7 +7,7 @@ authors.workspace = true
 description = "A CLI tool for generating ASCII tables"
 license.workspace = true
 repository.workspace = true
-keywords = ["ascii", "table", "cli", "formatting", "csv", "json"]
+keywords = ["ascii", "table", "cli", "csv", "json"]
 categories = ["command-line-interface", "text-processing", "visualization"]
 readme = "README.md"
 
