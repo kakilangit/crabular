@@ -48,8 +48,6 @@ jobs:
     needs: check-version
     outputs:
       release-exists: ${{ steps.check-release.outputs.release-exists }}
-      crabular-exists: ${{ steps.check-crates.outputs.crabular-exists }}
-      cli-exists: ${{ steps.check-crates.outputs.cli-exists }}
     steps:
       - uses: actions/checkout@v4
 
@@ -71,36 +69,10 @@ jobs:
             echo "release-exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Check if crates already published
-        id: check-crates
-        run: |
-          VERSION="${{ needs.check-version.outputs.version }}"
-
-          echo "Checking if crabular@$VERSION is already published..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/crabular/$VERSION")
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "crabular@$VERSION already published"
-            echo "crabular-exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "crabular@$VERSION not published yet"
-            echo "crabular-exists=false" >> $GITHUB_OUTPUT
-          fi
-
-          echo "Checking if crabular-cli@$VERSION is already published..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/crabular-cli/$VERSION")
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "crabular-cli@$VERSION already published"
-            echo "cli-exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "crabular-cli@$VERSION not published yet"
-            echo "cli-exists=false" >> $GITHUB_OUTPUT
-          fi
-
   test:
     name: Test Before Release
     runs-on: ubuntu-latest
-    needs: [check-version, check-release]
-    if: needs.check-release.outputs.release-exists == 'false'
+    needs: check-version
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -127,7 +99,7 @@ jobs:
     name: Publish to crates.io
     runs-on: ubuntu-latest
     needs: [check-version, check-release, test]
-    if: needs.check-release.outputs.release-exists == 'false' && (needs.check-release.outputs.crabular-exists == 'false' || needs.check-release.outputs.cli-exists == 'false')
+    if: needs.check-release.outputs.release-exists == 'false'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -146,21 +118,35 @@ jobs:
             target
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      - name: Publish crabular to crates.io
-        if: needs.check-release.outputs.crabular-exists == 'false'
+      - name: Check and publish crabular
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: cargo publish
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          echo "Checking if crabular@$VERSION is already published..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/crabular/$VERSION")
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "crabular@$VERSION already published, skipping"
+          else
+            echo "Publishing crabular@$VERSION..."
+            cargo publish
+            echo "Waiting for crates.io propagation..."
+            sleep 30
+          fi
 
-      - name: Wait for crates.io propagation
-        if: needs.check-release.outputs.crabular-exists == 'false'
-        run: sleep 30
-
-      - name: Publish crabular-cli to crates.io
-        if: needs.check-release.outputs.cli-exists == 'false'
+      - name: Check and publish crabular-cli
         env:
           CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: cargo publish -p crabular-cli
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          echo "Checking if crabular-cli@$VERSION is already published..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" "https://crates.io/api/v1/crates/crabular-cli/$VERSION")
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "crabular-cli@$VERSION already published, skipping"
+          else
+            echo "Publishing crabular-cli@$VERSION..."
+            cargo publish -p crabular-cli
+          fi
 
   create-release:
     name: Create GitHub Release
@@ -173,7 +159,7 @@ jobs:
       needs.check-release.outputs.release-exists == 'false' &&
       needs.check-release.result == 'success' &&
       needs.test.result == 'success' &&
-      (needs.publish.result == 'success' || needs.publish.result == 'skipped')
+      needs.publish.result == 'success'
     steps:
       - uses: actions/checkout@v4
         with:
