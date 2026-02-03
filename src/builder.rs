@@ -43,17 +43,25 @@ impl TableBuilder {
         self
     }
 
+    /// Sets the maximum length for cell content. Values longer than this will be truncated
+    /// with "..." suffix. If set to 3 or less, truncation happens without the suffix.
+    #[must_use]
+    pub fn truncate(mut self, limit: usize) -> Self {
+        self.table = self.table.truncate(limit);
+        self
+    }
+
     /// Sets the table headers.
     #[must_use]
     pub fn header<R: Into<Row>>(mut self, headers: R) -> Self {
-        self.table.set_headers(headers.into());
+        self.table.set_headers(headers);
         self
     }
 
     /// Adds a row to the table.
     #[must_use]
     pub fn row<R: Into<Row>>(mut self, cells: R) -> Self {
-        self.table.add_row(cells.into());
+        self.table.add_row(cells);
         self
     }
 
@@ -65,7 +73,7 @@ impl TableBuilder {
         R: Into<Row>,
     {
         for row_data in rows {
-            self.table.add_row(row_data.into());
+            self.table.add_row(row_data);
         }
         self
     }

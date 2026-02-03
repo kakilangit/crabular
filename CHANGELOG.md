@@ -8,6 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.5.0] - 2026-02-03
 
 ### Added
+- `--truncate N` flag to limit cell content length with "..." suffix
+- `Table::truncate(limit)` and `TableBuilder::truncate(limit)` methods
+- Single JSON object support (arrays and objects both supported)
+- Nested object/array serialization as JSON strings
+- Static dispatch for data parsers (performance improvement)
 - `--no-header` flag to treat all rows as data (no header row)
 - `--skip-header` flag to skip first row and treat remaining as data
 - Workspace configuration for shared package metadata
@@ -15,6 +20,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Replaced `--has-header` with clearer `--no-header` and `--skip-header` flags
 - Improved CLI flag semantics for better user experience
+- JSON parsers now serialize nested objects/arrays as compact JSON strings
+
+### Performance
+- Zero-copy truncate when disabled (default behavior)
+- Static dispatch replaces dynamic trait objects
 
 ### Removed
 - **BREAKING:** `--has-header` flag - use `--no-header` or `--skip-header` instead

@@ -7,6 +7,7 @@ fn main() {
     demo_builder();
     demo_colspan();
     demo_invoice();
+    demo_truncate();
 }
 
 fn demo_styles() {
@@ -168,4 +169,28 @@ fn demo_invoice() {
     invoice.add_row(grand_total);
 
     invoice.print();
+}
+
+fn demo_truncate() {
+    println!("\n=== Truncate Example ===");
+    TableBuilder::new()
+        .style(TableStyle::Modern)
+        .header(["ID", "Name", "Description", "Score"])
+        .truncate(20)
+        .rows([
+            [
+                "1",
+                "Kata",
+                "A very long description that should be truncated",
+                "95.5",
+            ],
+            ["2", "Kelana", "Short desc", "87.2"],
+            [
+                "3",
+                "Squidward",
+                "Another extremely long description text here",
+                "92.0",
+            ],
+        ])
+        .print();
 }
