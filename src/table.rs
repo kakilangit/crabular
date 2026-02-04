@@ -774,32 +774,40 @@ impl Table {
     /// Internal method that renders the table with pre-calculated column widths.
     fn render_with_widths(&self, column_widths: &[usize]) -> String {
         let borders = self.style.border_chars();
-        let is_minimal_or_compact = matches!(self.style, TableStyle::Minimal | TableStyle::Compact);
+        let skip_outer_borders = matches!(
+            self.style,
+            TableStyle::Minimal | TableStyle::Compact | TableStyle::Markdown
+        );
 
         let num_columns = column_widths.len();
+        let padding = self.padding.left + self.padding.right;
 
         // Pre-calculate approximate buffer size
         let row_width: usize = column_widths.iter().sum::<usize>()
-            + (self.padding.left + self.padding.right) * num_columns
+            + padding * num_columns
             + self.column_spacing * num_columns.saturating_sub(1)
-            + num_columns + 1 // border chars
-            + 1; // newline
+            + num_columns
+            + 2; // border chars + newline
 
         let num_rows = self.len();
-        let border_rows = if is_minimal_or_compact { 1 } else { 3 };
+        let border_rows = if skip_outer_borders { 1 } else { 3 };
         let estimated_lines = num_rows + border_rows + usize::from(self.headers().is_some());
         let estimated_capacity = row_width * estimated_lines;
 
         let mut output = String::with_capacity(estimated_capacity);
 
+        let boundaries_for = |row: Option<&Row>| {
+            row.map_or_else(
+                || Self::all_boundaries(num_columns),
+                |row| Self::get_row_boundaries(row, num_columns),
+            )
+        };
+
         // Get the first row to determine top border boundaries
         let first_row = self.headers().or_else(|| self.rows.first());
 
-        if !is_minimal_or_compact {
-            let first_boundaries = first_row.map_or_else(
-                || Self::all_boundaries(num_columns),
-                |row| Self::get_row_boundaries(row, num_columns),
-            );
+        if !skip_outer_borders {
+            let first_boundaries = boundaries_for(first_row);
             // For top border, only use first row boundaries (pass same for both)
             output.push_str(&Self::render_horizontal_border_with_spans(
                 column_widths,
@@ -824,26 +832,30 @@ impl Table {
                 &borders,
                 &self.column_alignments,
             ));
+            if self.style == TableStyle::Markdown {
+                output.push_str(&Self::render_markdown_header_separator(
+                    column_widths,
+                    self.padding,
+                    self.column_spacing,
+                ));
+            } else {
+                // Get first data row boundaries for the separator
+                let first_data_boundaries = boundaries_for(self.rows.first());
 
-            // Get first data row boundaries for the separator
-            let first_data_boundaries = self.rows.first().map_or_else(
-                || Self::all_boundaries(num_columns),
-                |row| Self::get_row_boundaries(row, num_columns),
-            );
-
-            output.push_str(&Self::render_horizontal_border_with_spans(
-                column_widths,
-                self.padding,
-                self.column_spacing,
-                borders.left_cross,
-                borders.cross,
-                borders.right_cross,
-                borders.horizontal,
-                borders.top_cross,      // T-down (row below has boundary)
-                borders.bottom_cross,   // T-up (row above has boundary)
-                &first_data_boundaries, // Row below (first data row)
-                &header_boundaries,     // Row above (headers)
-            ));
+                output.push_str(&Self::render_horizontal_border_with_spans(
+                    column_widths,
+                    self.padding,
+                    self.column_spacing,
+                    borders.left_cross,
+                    borders.cross,
+                    borders.right_cross,
+                    borders.horizontal,
+                    borders.top_cross,      // T-down (row below has boundary)
+                    borders.bottom_cross,   // T-up (row above has boundary)
+                    &first_data_boundaries, // Row below (first data row)
+                    &header_boundaries,     // Row above (headers)
+                ));
+            }
         }
 
         for row in self.rows() {
@@ -855,12 +867,9 @@ impl Table {
             ));
         }
 
-        if !is_minimal_or_compact {
+        if !skip_outer_borders {
             let last_row = self.rows.last().or(self.headers());
-            let last_boundaries = last_row.map_or_else(
-                || Self::all_boundaries(num_columns),
-                |row| Self::get_row_boundaries(row, num_columns),
-            );
+            let last_boundaries = boundaries_for(last_row);
             // For bottom border, only use last row boundaries (pass same for both)
             output.push_str(&Self::render_horizontal_border_with_spans(
                 column_widths,
@@ -1193,6 +1202,48 @@ impl Table {
         line.push_str(right);
         line.push('\n');
 
+        line
+    }
+
+    fn render_markdown_header_separator(
+        column_widths: &[usize],
+        padding: Padding,
+        column_spacing: usize,
+    ) -> String {
+        let num_columns = column_widths.len();
+        let content_width: usize = column_widths.iter().sum::<usize>()
+            + (padding.left + padding.right) * num_columns
+            + column_spacing * num_columns.saturating_sub(1);
+        let border_chars = num_columns + 1;
+        let estimated_capacity = content_width + border_chars + 1;
+
+        let mut line = String::with_capacity(estimated_capacity);
+        line.push('|');
+
+        for (index, &width) in column_widths.iter().enumerate() {
+            let cell_width = padding.left + width + padding.right;
+            if cell_width >= 2 {
+                line.push('-');
+                for _ in 0..cell_width.saturating_sub(2) {
+                    line.push('-');
+                }
+                line.push('-');
+            } else {
+                for _ in 0..cell_width.max(1) {
+                    line.push('-');
+                }
+            }
+
+            if index < num_columns - 1 {
+                for _ in 0..column_spacing {
+                    line.push(' ');
+                }
+                line.push('|');
+            }
+        }
+
+        line.push('|');
+        line.push('\n');
         line
     }
 }
