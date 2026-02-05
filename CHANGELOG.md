@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.7.0] - 2026-02-05
+
+### Changed
+- **crabular-wasm npm package renamed to `crabular`**
+  - Package is now published as `crabular` on npm (was `crabular-wasm`)
+  - Import: `import { JsTable } from 'crabular'` instead of `crabular-wasm`
+  - Updated all JavaScript examples and documentation
+
+### Fixed
+- Release workflow now properly publishes to crates.io and npm
+- Removed crabular-wasm from crates.io publishing (npm-only)
+- Added npm verification step before GitHub release creation
+
 ## [0.6.0] - 2026-02-05
 
 ### Added
@@ -124,3 +137,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.5.0]: https://github.com/kakilangit/crabular/releases/tag/v0.5.0
 [0.5.1]: https://github.com/kakilangit/crabular/releases/tag/v0.5.1
 [0.6.0]: https://github.com/kakilangit/crabular/releases/tag/v0.6.0
+[0.7.0]: https://github.com/kakilangit/crabular/releases/tag/v0.7.0

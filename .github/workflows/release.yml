@@ -150,19 +150,31 @@ jobs:
             cargo publish -p crabular-cli
           fi
 
-      - name: Check and publish crabular-wasm
+      # crabular-wasm is a build-time crate for npm publishing only
+      # It should be published to npm via wasm-pack, not to crates.io
+      # See crabular-wasm/README.md for npm publishing instructions
+
+      - name: Check and publish crabular-wasm to npm
         env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
-          echo "Checking if crabular-wasm@$VERSION is already published..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: crabular-release-workflow" "https://crates.io/api/v1/crates/crabular-wasm/$VERSION")
-          echo "HTTP_STATUS: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" = "200" ]; then
-            echo "crabular-wasm@$VERSION already published, skipping"
+          echo "Checking if crabular@$VERSION is already published to npm..."
+          NPM_VERSION=$(npm view crabular@$VERSION version 2>/dev/null || echo "")
+          if [ "$NPM_VERSION" = "$VERSION" ]; then
+            echo "crabular@$VERSION already published to npm, skipping"
           else
-            echo "Publishing crabular-wasm@$VERSION..."
-            cargo publish -p crabular-wasm
+            echo "Publishing crabular@$VERSION to npm..."
+            cd crabular-wasm
+            npm install -g wasm-pack
+            # Override package name to 'crabular' for npm
+            wasm-pack build --target bundler --out-name crabular
+            cd pkg
+            # Update package.json name to crabular
+            sed -i 's/"name": "crabular-wasm"/"name": "crabular"/' package.json
+            echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > .npmrc
+            npm publish --access public
+            echo "Published crabular@$VERSION to npm"
           fi
 
   create-release:
@@ -202,15 +214,19 @@ jobs:
             exit 1
           fi
 
-          echo "Verifying crabular-wasm@$VERSION exists on crates.io..."
-          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: crabular-release-workflow" "https://crates.io/api/v1/crates/crabular-wasm/$VERSION")
-          echo "HTTP_STATUS: $HTTP_STATUS"
-          if [ "$HTTP_STATUS" != "200" ]; then
-            echo "crabular-wasm@$VERSION not found on crates.io"
+          # crabular-wasm is npm-only, not published to crates.io
+          echo "All crates verified on crates.io"
+
+      - name: Verify crabular exists on npm
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          echo "Verifying crabular@$VERSION exists on npm..."
+          NPM_VERSION=$(npm view crabular@$VERSION version 2>/dev/null || echo "")
+          if [ "$NPM_VERSION" != "$VERSION" ]; then
+            echo "crabular@$VERSION not found on npm"
             exit 1
           fi
-
-          echo "All crates verified on crates.io"
+          echo "crabular@$VERSION verified on npm"
 
       - name: Generate changelog
         id: changelog

@@ -16,7 +16,7 @@ readme = "README.md"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-crabular = { path = "..", version = "0.6" }
+crabular = { path = "..", version = "0.7" }
 js-sys = "0.3"
 wasm-bindgen = "0.2"
 

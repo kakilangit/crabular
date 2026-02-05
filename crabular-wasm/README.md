@@ -2,16 +2,18 @@
 
 WebAssembly bindings for [crabular](https://github.com/kakilangit/crabular) - ASCII table library for JavaScript/TypeScript.
 
+> **Note:** This crate is **npm-only** and should not be published to crates.io. It's built with `wasm-pack` and published to the npm registry. The crate exists in the workspace solely as a build artifact source.
+
 ## Install
 
 ```bash
-npm install crabular-wasm
+npm install crabular
 ```
 
 ## Quick Start
 
 ```javascript
-import init, { JsTable } from 'crabular-wasm';
+import init, { JsTable } from 'crabular';
 
 await init();
 
@@ -74,7 +76,7 @@ built.render();                  // Render to string
 ### Convenience Functions
 
 ```javascript
-import { createTable, renderRows } from 'crabular-wasm';
+import { createTable, renderRows } from 'crabular';
 
 // Create table with headers
 createTable([
