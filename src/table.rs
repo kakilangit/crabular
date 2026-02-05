@@ -1262,7 +1262,7 @@ impl Default for Table {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{Alignment, Table, TableStyle, VerticalAlignment};
 
     #[test]
     fn new_is_empty() {

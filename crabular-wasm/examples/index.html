@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crabular WASM Demo</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+        .example {
+            background: white;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .example h2 {
+            margin-top: 0;
+            color: #2c3e50;
+        }
+        pre {
+            background: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        .output {
+            background: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 10px;
+            white-space: pre;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+        button {
+            background: #e74c3c;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background: #c0392b;
+        }
+        select {
+            padding: 8px;
+            font-size: 14px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Crabular WASM Demo</h1>
+    <p>ASCII table library for JavaScript, powered by WebAssembly</p>
+
+    <div class="example">
+        <h2>Example 1: Basic Table</h2>
+        <pre><code>const table = new JsTable();
+table.style('modern');
+table.header(['Name', 'Age', 'Score']);
+table.row(['Alice', '30', '95.5']);
+table.row(['Bob', '25', '87.2']);
+table.row(['Charlie', '35', '92.0']);
+console.log(table.render());</code></pre>
+        <button onclick="runExample1()">Run Example</button>
+        <div id="output1" class="output"></div>
+    </div>
+
+    <div class="example">
+        <h2>Example 2: Markdown Style</h2>
+        <pre><code>const table = new JsTable();
+table.style('markdown');
+table.header(['Product', 'Price', 'Stock']);
+table.row(['Widget', '$10.00', '50']);
+table.row(['Gadget', '$25.00', '30']);
+console.log(table.render());</code></pre>
+        <button onclick="runExample2()">Run Example</button>
+        <div id="output2" class="output"></div>
+    </div>
+
+    <div class="example">
+        <h2>Example 3: Column Alignment</h2>
+        <pre><code>const table = new JsTable();
+table.style('modern');
+table.header(['Item', 'Price', 'Qty']);
+table.row(['Apple', '$1.00', '5']);
+table.row(['Banana', '$0.50', '10']);
+table.align(1, 'right');  // Right-align price
+table.align(2, 'center'); // Center-align quantity
+console.log(table.render());</code></pre>
+        <button onclick="runExample3()">Run Example</button>
+        <div id="output3" class="output"></div>
+    </div>
+
+    <div class="example">
+        <h2>Example 4: Sorting</h2>
+        <pre><code>const table = new JsTable();
+table.style('modern');
+table.header(['Name', 'Score']);
+table.row(['Charlie', '85']);
+table.row(['Alice', '95']);
+table.row(['Bob', '90']);
+const built = table.build();
+built.sortNum(1); // Sort by score
+console.log(built.render());</code></pre>
+        <button onclick="runExample4()">Run Example</button>
+        <div id="output4" class="output"></div>
+    </div>
+
+    <div class="example">
+        <h2>Example 5: Different Styles</h2>
+        <label>Choose style:</label>
+        <select id="styleSelect">
+            <option value="classic">Classic</option>
+            <option value="modern" selected>Modern</option>
+            <option value="minimal">Minimal</option>
+            <option value="compact">Compact</option>
+            <option value="markdown">Markdown</option>
+        </select>
+        <button onclick="runExample5()">Render</button>
+        <div id="output5" class="output"></div>
+    </div>
+
+    <script type="module">
+        import init, { JsTable } from '../pkg/crabular_wasm.js';
+        
+        try {
+            await init();
+            console.log('WASM initialized successfully');
+        } catch (e) {
+            console.error('Failed to initialize WASM:', e);
+            document.body.innerHTML = '<div style="color: red; padding: 20px;">' +
+                '<h2>Error: Failed to load WASM module</h2>' +
+                '<p><strong>Did you run the server from the examples directory?</strong></p>' +
+                '<p>You must serve from the crabular-wasm directory, not examples:</p>' +
+                '<pre>cd ..                    # Go to crabular-wasm directory\n' +
+                'npx serve .              # or: python3 -m http.server 8000</pre>' +
+                '<p>Then open: <code>http://localhost:8000/examples/</code></p>' +
+                '<hr>' +
+                '<p>Make sure you have also built the WASM package:</p>' +
+                '<pre>wasm-pack build --target web</pre>' +
+                '</div>';
+            throw e;
+        }
+        
+        window.runExample1 = function() {
+            const table = new JsTable();
+            table.style('modern');
+            table.header(['Name', 'Age', 'Score']);
+            table.row(['Alice', '30', '95.5']);
+            table.row(['Bob', '25', '87.2']);
+            table.row(['Charlie', '35', '92.0']);
+            document.getElementById('output1').textContent = table.render();
+        };
+        
+        window.runExample2 = function() {
+            const table = new JsTable();
+            table.style('markdown');
+            table.header(['Product', 'Price', 'Stock']);
+            table.row(['Widget', '$10.00', '50']);
+            table.row(['Gadget', '$25.00', '30']);
+            document.getElementById('output2').textContent = table.render();
+        };
+        
+        window.runExample3 = function() {
+            const table = new JsTable();
+            table.style('modern');
+            table.header(['Item', 'Price', 'Qty']);
+            table.row(['Apple', '$1.00', '5']);
+            table.row(['Banana', '$0.50', '10']);
+            table.align(1, 'right');
+            table.align(2, 'center');
+            document.getElementById('output3').textContent = table.render();
+        };
+        
+        window.runExample4 = function() {
+            const table = new JsTable();
+            table.style('modern');
+            table.header(['Name', 'Score']);
+            table.row(['Charlie', '85']);
+            table.row(['Alice', '95']);
+            table.row(['Bob', '90']);
+            const built = table.build();
+            built.sortNum(1);
+            document.getElementById('output4').textContent = built.render();
+        };
+        
+        window.runExample5 = function() {
+            const style = document.getElementById('styleSelect').value;
+            const table = new JsTable();
+            table.style(style);
+            table.header(['Style', 'Description']);
+            table.row([style, 'This is the ' + style + ' style']);
+            table.row(['Example', 'More text here']);
+            document.getElementById('output5').textContent = table.render();
+        };
+        
+        // Run first example automatically
+        runExample1();
+    </script>
+</body>
+</html>

@@ -91,8 +91,8 @@ impl DataParser {
     fn parse(&mut self, reader: Box<dyn Read>) -> io::Result<RowData> {
         match self {
             DataParser::Csv(p) => p.parse(reader),
-            DataParser::Json(p) => p.parse(reader),
-            DataParser::Jsonl(p) => p.parse(reader),
+            DataParser::Json(_) => JsonParser::parse(reader),
+            DataParser::Jsonl(_) => JsonlParser::parse(reader),
         }
     }
 }
@@ -172,7 +172,7 @@ impl JsonParser {
         Self
     }
 
-    fn parse(&mut self, mut reader: Box<dyn Read>) -> io::Result<RowData> {
+    fn parse(mut reader: Box<dyn Read>) -> io::Result<RowData> {
         let mut content = String::new();
         reader.read_to_string(&mut content)?;
 
@@ -217,7 +217,7 @@ impl JsonlParser {
         Self
     }
 
-    fn parse(&mut self, mut reader: Box<dyn Read>) -> io::Result<RowData> {
+    fn parse(mut reader: Box<dyn Read>) -> io::Result<RowData> {
         let mut content = String::new();
         reader.read_to_string(&mut content)?;
 

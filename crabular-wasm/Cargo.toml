@@ -1,0 +1,24 @@
+[package]
+name = "crabular-wasm"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "WebAssembly bindings for crabular - ASCII table library"
+documentation = "https://docs.rs/crabular-wasm"
+license.workspace = true
+repository.workspace = true
+keywords = ["wasm", "javascript", "ascii", "table", "web"]
+categories = ["wasm", "web-programming"]
+readme = "README.md"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+crabular = { path = "..", version = "0.6" }
+js-sys = "0.3"
+wasm-bindgen = "0.2"
+
+[lints]
+workspace = true

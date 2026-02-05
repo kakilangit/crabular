@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [0.6.0] - 2026-02-05
+
+### Added
+- **crabular-wasm** - New workspace member with WebAssembly bindings for JavaScript/TypeScript
+  - `JsTable` builder class for fluent table construction
+  - `JsTableObject` for built table manipulation
+  - Support for all table styles: classic, modern, minimal, compact, markdown
+  - Sorting, filtering, alignment controls accessible from JavaScript
+  - Browser and Node.js examples in `crabular-wasm/examples/`
+
+### Changed
+- Replaced all `use super::*;` with explicit `crate::` imports throughout codebase
+  - Improved code clarity and follows Rust best practices
+  - No functional changes, purely internal refactoring
+
 ## [0.5.1] - 2026-02-04
 
 ### Fixed
@@ -108,3 +123,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [0.4.0]: https://github.com/kakilangit/crabular/releases/tag/v0.4.0
 [0.5.0]: https://github.com/kakilangit/crabular/releases/tag/v0.5.0
 [0.5.1]: https://github.com/kakilangit/crabular/releases/tag/v0.5.1
+[0.6.0]: https://github.com/kakilangit/crabular/releases/tag/v0.6.0

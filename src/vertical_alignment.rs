@@ -25,7 +25,7 @@ impl core::str::FromStr for VerticalAlignment {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::VerticalAlignment;
 
     #[test]
     fn variants() {

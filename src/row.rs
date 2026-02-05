@@ -139,7 +139,7 @@ impl<S: AsRef<str>, const N: usize> From<&[S; N]> for Row {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{Alignment, Cell, Row};
 
     #[test]
     fn new_is_empty() {

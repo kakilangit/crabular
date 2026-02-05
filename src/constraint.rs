@@ -11,7 +11,7 @@ pub enum WidthConstraint {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::WidthConstraint;
 
     #[test]
     fn variants_equality() {

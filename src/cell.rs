@@ -49,7 +49,7 @@ impl core::fmt::Display for Cell {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{Alignment, Cell};
 
     #[test]
     fn creation() {

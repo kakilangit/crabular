@@ -150,6 +150,21 @@ jobs:
             cargo publish -p crabular-cli
           fi
 
+      - name: Check and publish crabular-wasm
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
+        run: |
+          VERSION="${{ needs.check-version.outputs.version }}"
+          echo "Checking if crabular-wasm@$VERSION is already published..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: crabular-release-workflow" "https://crates.io/api/v1/crates/crabular-wasm/$VERSION")
+          echo "HTTP_STATUS: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" = "200" ]; then
+            echo "crabular-wasm@$VERSION already published, skipping"
+          else
+            echo "Publishing crabular-wasm@$VERSION..."
+            cargo publish -p crabular-wasm
+          fi
+
   create-release:
     name: Create GitHub Release
     permissions:
@@ -167,7 +182,7 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify both crates exist on crates.io
+      - name: Verify all crates exist on crates.io
         run: |
           VERSION="${{ needs.check-version.outputs.version }}"
 
@@ -187,7 +202,15 @@ jobs:
             exit 1
           fi
 
-          echo "Both crates verified on crates.io"
+          echo "Verifying crabular-wasm@$VERSION exists on crates.io..."
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -H "User-Agent: crabular-release-workflow" "https://crates.io/api/v1/crates/crabular-wasm/$VERSION")
+          echo "HTTP_STATUS: $HTTP_STATUS"
+          if [ "$HTTP_STATUS" != "200" ]; then
+            echo "crabular-wasm@$VERSION not found on crates.io"
+            exit 1
+          fi
+
+          echo "All crates verified on crates.io"
 
       - name: Generate changelog
         id: changelog

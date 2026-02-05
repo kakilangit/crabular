@@ -27,7 +27,7 @@ impl Default for Padding {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::Padding;
 
     #[test]
     fn new() {
