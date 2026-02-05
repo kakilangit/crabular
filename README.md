@@ -21,7 +21,7 @@ A high-performance ASCII table library for Rust with zero dependencies.
 - **Filtering** - Filter rows by exact match, predicate, or substring
 - **Builder API** - Fluent interface for table construction
 - **Zero dependencies** - No external crates required (core library)
-- **WebAssembly support** - Use in browsers and Node.js via `crabular-wasm`
+- **WebAssembly support** - Use in browsers and Node.js via `crabular` npm package
 - **Safe Rust** - `#![forbid(unsafe_code)]`
 - **High performance** - Zero-allocation Display trait, allocation pooling for repeated renders
 
@@ -66,7 +66,7 @@ Add to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-crabular = "0.6"
+crabular = "0.7"
 ```
 
 ### WebAssembly (JavaScript/TypeScript)
@@ -74,11 +74,11 @@ crabular = "0.6"
 For browser or Node.js usage, install the WebAssembly package:
 
 ```bash
-npm install crabular-wasm
+npm install crabular
 ```
 
 ```javascript
-import init, { JsTable } from 'crabular-wasm';
+import init, { JsTable } from 'crabular';
 await init();
 
 const table = new JsTable();
