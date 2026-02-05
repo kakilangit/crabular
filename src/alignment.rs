@@ -21,7 +21,7 @@ impl core::str::FromStr for Alignment {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::Alignment;
 
     #[test]
     fn variants() {

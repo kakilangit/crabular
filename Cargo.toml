@@ -1,9 +1,23 @@
+[package]
+name = "crabular"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+authors.workspace = true
+description = "A high-performance ASCII table library for Rust"
+documentation = "https://docs.rs/crabular"
+license.workspace = true
+repository.workspace = true
+keywords = ["ascii", "table", "terminal", "formatting", "visualization"]
+categories = ["visualization", "text-processing"]
+readme = "README.md"
+
 [workspace]
-members = ["crabular-cli"]
+members = ["crabular-cli", "crabular-wasm"]
 resolver = "2"
 
 [workspace.package]
-version = "0.5.1"
+version = "0.6.0"
 edition = "2024"
 rust-version = "1.93"
 authors = ["kakilangit <crates@kakilangit.dev>"]
@@ -18,20 +32,6 @@ panic = "deny"
 unwrap_used = "deny"
 expect_used = "deny"
 pedantic = { level = "deny", priority = 1 }
-
-[package]
-name = "crabular"
-version.workspace = true
-edition.workspace = true
-rust-version.workspace = true
-authors.workspace = true
-description = "A high-performance ASCII table library for Rust"
-documentation = "https://docs.rs/crabular"
-license.workspace = true
-repository.workspace = true
-keywords = ["ascii", "table", "terminal", "formatting", "visualization"]
-categories = ["visualization", "text-processing"]
-readme = "README.md"
 
 [dependencies]
 

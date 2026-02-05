@@ -137,7 +137,7 @@ impl TableBuilder {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::{Alignment, Padding, TableBuilder, TableStyle, VerticalAlignment, WidthConstraint};
 
     #[test]
     fn new_is_empty() {

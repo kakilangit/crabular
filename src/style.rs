@@ -115,7 +115,7 @@ impl TableStyle {
 
 #[cfg(test)]
 mod tests {
-    use super::*;
+    use crate::TableStyle;
 
     #[test]
     fn variants_equality() {

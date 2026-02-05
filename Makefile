@@ -7,7 +7,7 @@ install-rust: ## Install Rust toolchain with required components
 
 .PHONY: check
 check: ## Run cargo check
-	cargo +$(RUST_VERSION) check --all-features
+	cargo +$(RUST_VERSION) check --workspace --all-features
 
 .PHONY: fmt
 fmt: ## Format all code
@@ -19,15 +19,15 @@ fmt-check: ## Check code formatting
 
 .PHONY: clippy
 clippy: ## Run clippy lints
-	cargo +$(RUST_VERSION) clippy --all-targets --all-features -- -D warnings -W clippy::pedantic
+	cargo +$(RUST_VERSION) clippy --workspace --all-targets --all-features -- -D warnings -W clippy::pedantic
 
 .PHONY: test
 test: ## Run all tests
-	cargo +$(RUST_VERSION) test --all-features
+	cargo +$(RUST_VERSION) test --workspace --all-features
 
 .PHONY: test-doc
 test-doc: ## Run documentation tests
-	cargo +$(RUST_VERSION) test --doc --all-features
+	cargo +$(RUST_VERSION) test --workspace --doc --all-features
 
 .PHONY: examples
 examples: ## Run examples
